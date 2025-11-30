@@ -1,0 +1,15 @@
+# Nix build results
+result
+result-*
+
+# AI Context Dumps (Don't commit these!)
+*.xml
+repomix-output.txt
+
+# Editor temporary files
+.zed/
+*.swp
+
+# Optional: History files if you don't want them public
+.bash_history
+.zsh_history
