@@ -2,8 +2,8 @@
 
 {
   boot = {
-    # Use Zen kernel for desktop responsiveness
-    kernelPackages = pkgs.linuxPackages_zen;
+    # Use LTS kernel for stability
+    kernelPackages = pkgs.linuxPackages_lts;
 
     # --- CLEANUP: Removed initrd modules ---
     # We let hosts/nixos/hardware.nix handle "usbhid" and "xhci".
