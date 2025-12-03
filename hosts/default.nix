@@ -19,6 +19,8 @@
     ../modules/core/packages.nix
     ../modules/core/portals.nix
     ../modules/core/fonts.nix
+    ../modules/core/appimage.nix
+
     # --- Desktop ---
     ../modules/core/greetd.nix
     ../modules/core/stylix.nix

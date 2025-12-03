@@ -26,11 +26,11 @@
 
   # --- Overclocking & Control ---
   programs.coolercontrol.enable = true;
-  # programs.corectrl.enable = true; # Disabled for stability
+   programs.corectrl.enable = true; # Disabled for stability
 
-  # UPDATED: New location for overdrive settings
-  # hardware.amdgpu.overdrive = {
-  #   enable = true;
-  #   ppfeaturemask = "0xffffffff";
-  # };
+   #UPDATED: New location for overdrive settings
+   hardware.amdgpu.overdrive = {
+     enable = true;
+     ppfeaturemask = "0xffffffff";
+   };
 }

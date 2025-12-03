@@ -37,7 +37,6 @@
     # ========================
     # UTILITIES
     # ========================
-    repomix           # Code analysis
     gemini-cli        # Gemini protocol
     nvd               # Nix diffs
     errands           # Todo app

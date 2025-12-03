@@ -10,6 +10,7 @@ let
 in
 {
   imports = [
+    ./appimage.nix
     ./environment.nix
     ./fzf.nix
     ./git.nix
