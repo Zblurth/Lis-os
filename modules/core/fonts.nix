@@ -19,7 +19,7 @@
       fira-code-symbols
       noto-fonts
       noto-fonts-cjk-sans
-      noto-fonts-cjk-serif # Added this so newspapers/novels render correctly
+      noto-fonts-cjk-serif
       font-awesome
       jetbrains-mono
       material-icons

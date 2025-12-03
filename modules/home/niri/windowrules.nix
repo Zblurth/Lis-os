@@ -7,12 +7,6 @@
       draw-border-with-background false
   }
 
-  // --- ZED EDITOR (33% Width) ---
-  window-rule {
-      match app-id=r#"^dev\.zed\.Zed$"#
-      default-column-width { proportion 0.33; }
-  }
-
   // --- ERRANDS (Floating & Centered) ---
   window-rule {
       match app-id=r#"^errands$|^io\.github\.mrvladus\.List$"#
@@ -22,10 +16,17 @@
   }
 
   // --- Workspace 1 Rules ---
+  // --- Vivaldi ---
     window-rule {
         match at-startup=true app-id=r#"^vivaldi.*$"#
         open-on-workspace "1"
-        default-column-width { proportion 0.66; }
+        default-column-width { proportion 0.66667; }
+    }
+
+    // --- ZED EDITOR ---
+    window-rule {
+        match app-id=r#"^dev\.zed\.Zed$"#
+        default-column-width { proportion 0.33333; }
     }
 
     // --- Workspace 2 Rules ---

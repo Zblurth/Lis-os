@@ -25,5 +25,7 @@
     playerctl
     swayosd
     brightnessctl
+    pavucontrol # Audio control GUI (okay to keep in system for debugging)
+
   ];
 }

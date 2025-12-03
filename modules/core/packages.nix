@@ -32,7 +32,6 @@
     ffmpeg
     pipewire
     wireplumber
-    pavucontrol # Audio control GUI (okay to keep in system for debugging)
 
     # --- Development ---
     gcc
