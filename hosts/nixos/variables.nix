@@ -25,27 +25,9 @@
   keyboardLayout = "us";
   consoleKeyMap = "us";
 
-  # GPU IDs (for Prime)
-  intelID = "PCI:0:2:0";
-  nvidiaID = "PCI:1:0:0";
-
   # Core Features
-  enableNFS = false;
-  printEnable = false;
   thunarEnable = true;
   stylixEnable = true;
-
-  # Optional Features
-  gamingSupportEnable = false;
-  flutterdevEnable = false;
-  syncthingEnable = false;
-  enableCommunicationApps = false;
-  enableExtraBrowsers = false;
-  enableProductivityApps = false;
-  aiCodeEditorsEnable = false;
-
-  # Desktop Environment
-  enableHyprlock = false;
 
   # Bar/Shell Choice
   barChoice = "noctalia";
