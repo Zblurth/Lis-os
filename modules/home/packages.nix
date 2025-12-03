@@ -15,10 +15,15 @@
     repomix
     errands
     github-cli
+    gemini-cli
 
     # --- Utilities that are user-specific ---
     networkmanagerapplet
     ffmpegthumbnailer
     nvd
+    ddcutil
+    playerctl
+    swayosd
+    brightnessctl
   ];
 }

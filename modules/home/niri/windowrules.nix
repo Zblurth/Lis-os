@@ -33,12 +33,12 @@
     window-rule {
         match at-startup=true app-id="deezer-enhanced"
         open-on-workspace "2"
-        default-column-width { proportion 0.33; }
+        default-column-width { proportion 0.33333; }
     }
     // Vesktop (Right side intent)
     window-rule {
         match at-startup=true app-id="vesktop"
         open-on-workspace "2"
-        default-column-width { proportion 0.66; }
+        default-column-width { proportion 0.66667; }
     }
 ''

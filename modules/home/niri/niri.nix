@@ -12,9 +12,10 @@ let
     terminal
     stylixImage
     startupApps
+    monitorConfig
     ;
 
-  barChoice = variables.barChoice or "waybar";
+  barChoice = variables.barChoice or "noctalia";
 
   # Imports
   hostKeybindsPath = ./hosts/${host}/keybinds.nix;

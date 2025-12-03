@@ -24,5 +24,7 @@
 
     # --- JAVA FIX ---
     _JAVA_AWT_WM_NONREPARENTING = "1";
+
+    FONTCONFIG_FILE = "/etc/fonts/fonts.conf";
   };
 }

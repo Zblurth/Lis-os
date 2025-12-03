@@ -33,13 +33,16 @@ in
   // 2. Start Polkit (Password prompts)
   spawn-at-startup "${polkitAgent}"
 
-  // 3. Desktop Components
+  // 3. Start SwayOSD Server (The background worker)
+  spawn-at-startup "swayosd-server"
+
+  // 4. Desktop Components
   spawn-at-startup "bash" "-c" "wl-paste --watch cliphist store &"
   spawn-at-startup "bash" "-c" "swww-daemon && sleep 1 && swww img '${stylixImage}'"
   ${barStartupCommand}
   spawn-at-startup "wal" "-R"
 
-  // 4. Apps (Apps will trigger the portal restart automatically now)
+  // 5. Apps (Apps will trigger the portal restart automatically now)
   spawn-at-startup "vivaldi"
   spawn-at-startup "corectrl"
   spawn-at-startup "bash" "-c" "deezer-enhanced --ozone-platform=wayland & sleep 2; vesktop &"

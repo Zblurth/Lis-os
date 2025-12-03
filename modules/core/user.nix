@@ -15,9 +15,9 @@ in
 {
   imports = [ inputs.home-manager.nixosModules.home-manager ];
 
-  # Enable Fish and Zsh system-wide for vendor completions
   programs.fish.enable = true;
   programs.zsh.enable = true;
+  users.groups.i2c = {};
 
   home-manager = {
     useUserPackages = true;
@@ -53,6 +53,7 @@ in
       "scanner"
       "wheel" # sudo access
       "vboxusers" # For VirtualBox
+      "i2c"
     ];
     # Use configured shell based on defaultShell variable
     shell = shellPackage;

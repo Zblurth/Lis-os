@@ -36,8 +36,6 @@
             host = hostname;
             inherit profile;
             inherit username;
-            zen-browser = inputs.zen-browser.packages.${system}.default;
-            helium-browser = inputs.helium-browser.packages.${system}.helium-browser;
           };
           modules = [
             ./hosts/${hostname}/default.nix

@@ -6,9 +6,14 @@
   # System Configuration
   timeZone = "Europe/Paris";
 
-  # Monitor Settings (update after installation for your displays)
-  extraMonitorSettings = ''
-    monitor=,preferred,auto,1
+  # --- Monitor Settings (Niri) ---
+  # Replaced Hyprland syntax with Niri syntax
+  monitorConfig = ''
+    output "DP-2" {
+        mode "3440x1440@100.000"
+        scale 1.0
+        position x=0 y=0
+    }
   '';
 
   # Waybar Settings
@@ -20,8 +25,7 @@
   keyboardLayout = "us";
   consoleKeyMap = "us";
 
-  # For Nvidia Prime support (update if using nvidia-laptop profile)
-  # Run 'lspci | grep VGA' to find your actual GPU IDs
+  # GPU IDs (for Prime)
   intelID = "PCI:0:2:0";
   nvidiaID = "PCI:1:0:0";
 
@@ -31,28 +35,24 @@
   thunarEnable = true;
   stylixEnable = true;
 
-  # Optional Features (disabled for faster initial install)
-  # You can enable these later by setting to true and rebuilding
-  gamingSupportEnable = false; # Gaming controllers, gamescope, protonup-qt
-  flutterdevEnable = false; # Flutter development environment
-  syncthingEnable = false; # Syncthing file synchronization
-  enableCommunicationApps = false; # Discord, Teams, Zoom, Telegram
-  enableExtraBrowsers = false; # Vivaldi, Brave, Firefox, Chromium, Helium
-  enableProductivityApps = false; # Obsidian, GNOME Boxes, QuickEmu
-  aiCodeEditorsEnable = false; # Claude-code, gemini-cli, cursor
+  # Optional Features
+  gamingSupportEnable = false;
+  flutterdevEnable = false;
+  syncthingEnable = false;
+  enableCommunicationApps = false;
+  enableExtraBrowsers = false;
+  enableProductivityApps = false;
+  aiCodeEditorsEnable = false;
 
   # Desktop Environment
-  enableHyprlock = false; # Set to false if using DMS/Noctalia lock screens
+  enableHyprlock = false;
 
   # Bar/Shell Choice
   barChoice = "noctalia";
-
-  # Shell Choice
-  defaultShell = "zsh"; # Options: "fish" or "zsh"
+  defaultShell = "zsh";
 
   # Theming
   stylixImage = ../../wallpapers/Valley.jpg;
-  #waybarChoice = ../../modules/home/waybar/waybar-ddubs.nix;  # Waybar temporarily disabled
   animChoice = ../../modules/home/hyprland/animations-end4.nix;
 
   # Startup Applications
