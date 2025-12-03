@@ -17,7 +17,7 @@
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-cjk-serif
-      noto-fonts-emoji
+      noto-fonts-color-emoji
       font-awesome
 
       # Cool fonts to try (commented out - enable as needed)

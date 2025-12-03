@@ -1,6 +1,6 @@
 { pkgs, host, ... }:
 let
-  variables = import ../../hosts/${host}/variables.nix;
+  variables = import ../../hosts/variables.nix;
   inherit (variables) consoleKeyMap timeZone;
 in
 {

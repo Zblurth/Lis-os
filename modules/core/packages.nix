@@ -32,7 +32,7 @@
     # Performance
     htop        # Interactive process viewer
     btop        # Modern resource monitor (colorful!)
-    nvtop       # GPU monitoring (if NVIDIA)
+#    nvtop       # GPU monitoring (if NVIDIA)
     iotop       # Disk I/O monitoring
 
     # Disk/Storage

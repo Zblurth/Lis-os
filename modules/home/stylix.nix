@@ -4,7 +4,7 @@
   ...
 }:
 let
-  inherit (import ../../hosts/${host}/variables.nix) stylixEnable;
+  inherit (import ../../hosts/variables.nix) stylixEnable;
 in
 lib.mkIf stylixEnable {
   stylix.targets = {

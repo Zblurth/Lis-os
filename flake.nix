@@ -38,7 +38,7 @@
             inherit username;
           };
           modules = [
-            ./hosts/${hostname}/default.nix
+            ./hosts/default.nix
           ];
         };
 

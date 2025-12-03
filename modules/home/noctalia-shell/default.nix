@@ -6,7 +6,7 @@
   ...
 }:
 let
-  variables = import ../../../hosts/${host}/variables.nix;
+  variables = import ../../../hosts/variables.nix;
   barChoice = variables.barChoice or "waybar";
   enableNoctalia = barChoice == "noctalia";
 in

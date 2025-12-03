@@ -10,7 +10,7 @@ let
   background-alt = "#${config.lib.stylix.colors.base01}";
 
   # Import variables to check shell choice
-  variables = import ../../hosts/${host}/variables.nix;
+  variables = import ../../hosts/variables.nix;
   defaultShell = variables.defaultShell or "zsh";
 in
 {

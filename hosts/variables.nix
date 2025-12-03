@@ -34,8 +34,7 @@
   defaultShell = "zsh";
 
   # Theming
-  stylixImage = ../../wallpapers/Valley.jpg;
-  animChoice = ../../modules/home/hyprland/animations-end4.nix;
+  stylixImage = ../wallpapers/Valley.jpg;
 
   # Startup Applications
   startupApps = [ ];
