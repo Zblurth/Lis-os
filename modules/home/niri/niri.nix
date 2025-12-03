@@ -15,7 +15,7 @@ let
     monitorConfig
     ;
 
-  barChoice = variables.barChoice or "noctalia";
+  barChoice = variables.barChoice or "waybar";
 
   # Imports
   hostKeybindsPath = ./hosts/${host}/keybinds.nix;
@@ -48,7 +48,10 @@ let
   # Host specific overrides
   hostOutputsPath = ./hosts/${host}/outputs.nix;
   hostOutputs =
-    if builtins.pathExists hostOutputsPath then import hostOutputsPath { inherit host; } else "";
+    if builtins.pathExists hostOutputsPath then
+      import hostOutputsPath { inherit host; }
+    else
+      monitorConfig;  # <--- CHANGED FROM "" TO monitorConfig
   hostWindowRulesPath = ./hosts/${host}/windowrules.nix;
   hostWindowRules =
     if builtins.pathExists hostWindowRulesPath then
@@ -173,6 +176,47 @@ in
       ExecStart = "${pkgs.xwayland-satellite}/bin/xwayland-satellite";
       StandardOutput = "journal";
       Restart = "on-failure";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  # Environment preloading service - runs BEFORE portals start
+  systemd.user.services.niri-env-setup = {
+    Unit = {
+      Description = "Set up environment for Niri session";
+      Before = [
+        "xdg-desktop-portal.service"
+        "xdg-desktop-portal-gtk.service"
+        "xdg-desktop-portal-gnome.service"
+      ];
+      Requires = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "setup-niri-env" ''
+        # Set all critical Niri/Wayland environment variables
+        export XDG_CURRENT_DESKTOP=niri
+        export XDG_SESSION_DESKTOP=niri
+        export XDG_SESSION_TYPE=wayland
+
+        # Update DBus activation environment
+        ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd \
+          XDG_CURRENT_DESKTOP \
+          XDG_SESSION_DESKTOP \
+          XDG_SESSION_TYPE \
+          WAYLAND_DISPLAY \
+          DISPLAY
+
+        # Import into systemd user instance
+        ${pkgs.systemd}/bin/systemctl --user import-environment \
+          XDG_CURRENT_DESKTOP \
+          XDG_SESSION_DESKTOP \
+          XDG_SESSION_TYPE \
+          WAYLAND_DISPLAY \
+          DISPLAY
+      '';
     };
     Install.WantedBy = [ "graphical-session.target" ];
   };

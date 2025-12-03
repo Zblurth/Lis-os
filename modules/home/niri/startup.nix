@@ -13,17 +13,26 @@ let
 
   polkitAgent = "${pkgs.mate.mate-polkit}/libexec/polkit-mate-authentication-agent-1";
 
-  # FORCEFUL Environment Update Script
+  # Simple environment variable setting (no killing)
   updateEnv = pkgs.writeShellScript "niri-env-update" ''
-    # 1. Upload variables to Systemd/DBus
-    ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
-    ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XDG_SESSION_TYPE
+    # Set critical Wayland/Niri environment variables
+    export XDG_CURRENT_DESKTOP=niri
+    export XDG_SESSION_DESKTOP=niri
+    export XDG_SESSION_TYPE=wayland
 
-    # 2. KILL any portals that started too early (Fixes the 30s timeout)
-    ${pkgs.systemd}/bin/systemctl --user stop xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome
-    ${pkgs.systemd}/bin/systemctl --user reset-failed xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome
+    # Update DBus activation environment
+    ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd \
+      XDG_CURRENT_DESKTOP \
+      XDG_SESSION_DESKTOP \
+      XDG_SESSION_TYPE \
+      WAYLAND_DISPLAY
 
-    # 3. Portals will auto-start correctly when the first app (Vivaldi/Vesktop) requests them.
+    # Import into systemd user instance
+    ${pkgs.systemd}/bin/systemctl --user import-environment \
+      XDG_CURRENT_DESKTOP \
+      XDG_SESSION_DESKTOP \
+      XDG_SESSION_TYPE \
+      WAYLAND_DISPLAY
   '';
 in
 ''
