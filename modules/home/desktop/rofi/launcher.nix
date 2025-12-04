@@ -11,13 +11,13 @@ in
         ${pkgs.imagemagick}/bin/convert "${config.stylix.image}" -resize ^400x650 -gravity center -extent 400x650 "${rofiBg}"
       fi
 
-      # Short labels to prevent "..." truncation
+      # Direct emoji characters - no Nix interpolation
       ${pkgs.rofi}/bin/rofi \
         -show drun \
         -theme "${config.home.homeDirectory}/.config/rofi/launcher.rasi" \
         -modes "drun,windows:rofi-niri-kill,filebrowser" \
         -display-drun "🚀" \
-        -display-windows "💀" \
+        -display-windows "🚀" \
         -display-filebrowser "📁" \
         -markup-rows \
         -kb-mode-next "Control+Tab" \
