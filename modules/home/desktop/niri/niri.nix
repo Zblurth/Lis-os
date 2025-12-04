@@ -6,7 +6,7 @@
   ...
 }:
 let
-  variables = import ../../../hosts/variables.nix;
+  variables = import ../../../../hosts/variables.nix;
   inherit (variables)
     browser
     terminal
@@ -208,7 +208,7 @@ in
   # Place wallpapers in home directory
   home.file = {
     "Pictures/Wallpapers" = {
-      source = ../../../wallpapers;
+      source = ../../../../wallpapers;
       recursive = true;
     };
   };

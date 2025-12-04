@@ -1,0 +1,16 @@
+[config]
+reload_apps = false
+scheme = "content" 
+contrast = 0.0
+
+[config.modes.dark]
+
+# --- Niri Colors ---
+[templates.niri]
+input_path = "~/.config/matugen/templates/niri.kdl"
+output_path = "~/.config/niri/colors.kdl"
+
+# --- Rofi Colors ---
+[templates.rofi]
+input_path = "~/.config/matugen/templates/rofi.rasi"
+output_path = "~/.config/rofi/colors.rasi"
