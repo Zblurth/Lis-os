@@ -1,16 +1,26 @@
 [config]
 reload_apps = false
-scheme = "content" 
+scheme = "content"
 contrast = 0.0
 
 [config.modes.dark]
 
-# --- Niri Colors ---
+# --- Niri ---
 [templates.niri]
 input_path = "~/.config/matugen/templates/niri.kdl"
 output_path = "~/.config/niri/colors.kdl"
 
-# --- Rofi Colors ---
+# --- Rofi ---
 [templates.rofi]
 input_path = "~/.config/matugen/templates/rofi.rasi"
 output_path = "~/.config/rofi/colors.rasi"
+
+# --- Zed ---
+[templates.zed]
+input_path = "~/.config/matugen/templates/zed.json"
+output_path = "~/.config/zed/themes/matugen.json"
+
+# --- Discord (Vesktop) ---
+[templates.discord]
+input_path = "~/.config/matugen/templates/discord.css"
+output_path = "~/.config/vesktop/themes/lis.theme.css"
