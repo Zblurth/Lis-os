@@ -1,9 +1,26 @@
 /* ===========================================================================
-   Rofi Theme - Safe Mode (No Shorthands)
+   Rofi Theme - Compact & Most Used
    =========================================================================== */
 
 @import "colors.rasi"
 
+/* --- Configuration --- */
+configuration {
+    show-icons:                 true;
+    drun-display-format:        "{name}";
+
+    /* SORTING: Enable history so used apps float to top */
+    disable-history:            false;
+    sort:                       true;
+    sorting-method:             "fzf";
+    matching:                   "fuzzy";
+
+    /* Bindings */
+    kb-mode-next:               "Control+Tab";
+    kb-mode-prev:               "Control+Shift+Tab";
+}
+
+/* --- Global Properties --- */
 * {
     background-color:            transparent;
     text-color:                  @foreground;
@@ -12,16 +29,19 @@
     spacing:                     0px;
 }
 
+/* --- Window --- */
 window {
+    /* Compact Sizing (Matches wall-select height) */
     width:                       1000px;
-    height:                      600px;
+    height:                      650px;
+
     location:                    center;
-    anchor:                      center;
+    anchor:                    center;
 
     background-color:            @background;
     border-radius:               16px;
 
-    /* FIXED: Split border properties to allow variables */
+    /* Safe Border */
     border:                      2px;
     border-color:                @selected;
 
@@ -30,19 +50,24 @@ window {
 
 mainbox {
     orientation:                 horizontal;
-    children:                    [ "imagebox", "listbox" ];
+    children:                    [ "left-area", "right-area" ];
     background-color:            transparent;
 }
 
-imagebox {
-    width:                       350px;
+/* ===========================================================================
+   LEFT AREA (Wallpaper + Button Bar)
+   =========================================================================== */
+left-area {
+    /* Smaller sidebar width */
+    width:                       380px;
     expand:                      false;
 
-    /* The ZaneyOS scaling trick */
+    /* Wallpaper */
     background-image:            url("~/.cache/rofi-launcher.jpg", height);
 
+    /* Layout: Push mode-switcher to bottom */
     orientation:                 vertical;
-    children:                    [ "dummy" ];
+    children:                    [ "dummy", "mode-switcher" ];
     padding:                     20px;
 }
 
@@ -51,17 +76,47 @@ dummy {
     background-color:            transparent;
 }
 
-listbox {
+/* The Button Bar */
+mode-switcher {
+    orientation:                 horizontal;
+    enabled:                     true;
+    spacing:                     20px;
+    background-color:            @background;
+    text-color:                  @foreground;
+    opacity:                     0.9;
+    padding:                     10px;
+    border-radius:               12px;
+}
+
+button {
+    padding:                     10px;
+    border-radius:               8px;
+    background-color:            transparent;
+    text-color:                  @foreground-muted;
+    cursor:                      pointer;
+    font:                        "Twemoji 24";
+}
+
+button selected {
+    background-color:            @selected;
+    text-color:                  @text-selected;
+}
+
+/* ===========================================================================
+   RIGHT AREA (App Grid)
+   =========================================================================== */
+right-area {
     expand:                      true;
     orientation:                 vertical;
-    padding:                     20px;
-    spacing:                     15px;
     children:                    [ "inputbar", "listview" ];
+    padding:                     30px;
+    spacing:                     20px;
+    background-color:            @background;
 }
 
 inputbar {
     padding:                     12px;
-    border-radius:               10px;
+    border-radius:               12px;
     background-color:            @background-alt;
     text-color:                  @foreground;
     children:                    [ "entry" ];
@@ -76,36 +131,46 @@ entry {
 }
 
 listview {
-    columns:                     1;
-    lines:                       8;
+    /* COMPACT GRID: 4 Cols x 3 Rows = 12 Apps visible */
+    columns:                     4;
+    lines:                       3;
+
     cycle:                       true;
     dynamic:                     true;
     scrollbar:                   false;
-    spacing:                     8px;
+    spacing:                     15px;
 }
 
+/* ===========================================================================
+   GRID ELEMENTS
+   =========================================================================== */
 element {
-    orientation:                 horizontal;
-    padding:                     10px;
-    spacing:                     10px;
-    border-radius:               8px;
+    /* Vertical: Icon Top, Text Bottom */
+    orientation:                 vertical;
+    padding:                     15px;
+    border-radius:               16px;
     cursor:                      pointer;
+    spacing:                     8px;
 }
 
 element selected {
     background-color:            @selected;
-    text-color:                  @background;
+    text-color:                  @text-selected;
 }
 
 element-icon {
-    size:                        24px;
-    cursor:                      inherit;
+    /* Slightly smaller icons for compact look */
+    size:                        58px;
+    horizontal-align:            0.5;
     background-color:            transparent;
+    cursor:                      inherit;
 }
 
 element-text {
+    horizontal-align:            0.5;
     vertical-align:              0.5;
-    cursor:                      inherit;
     background-color:            transparent;
     text-color:                  inherit;
+    cursor:                      inherit;
+    font:                        "Sans 10"; /* Slightly smaller font */
 }
