@@ -36,7 +36,7 @@ window {
     height:                      650px;
 
     location:                    center;
-    anchor:                    center;
+    anchor:                      center;
 
     background-color:            @background;
     border-radius:               16px;
@@ -131,7 +131,7 @@ entry {
 }
 
 listview {
-    /* COMPACT GRID: 4 Cols x 3 Rows = 12 Apps visible */
+    /* COMPACT GRID */
     columns:                     4;
     lines:                       3;
 
@@ -166,11 +166,13 @@ element-icon {
     cursor:                      inherit;
 }
 
+/* CRITICAL: Enable Pango markup for list items */
 element-text {
+    markup:                      true;
     horizontal-align:            0.5;
     vertical-align:              0.5;
     background-color:            transparent;
     text-color:                  inherit;
     cursor:                      inherit;
-    font:                        "Sans 10"; /* Slightly smaller font */
+    font:                        "Sans 10";
 }
