@@ -2,13 +2,10 @@
 {
   config,
   lib,
-  host,
   ...
 }:
 let
   accent = "#${config.lib.stylix.colors.base0D}";
-  background-alt = "#${config.lib.stylix.colors.base01}";
-
   # Import variables to check shell choice
   variables = import ../../hosts/variables.nix;
   defaultShell = variables.defaultShell or "zsh";
@@ -46,9 +43,11 @@ in
       };
 
       git_branch = {
-        symbol = "[](${background-alt}) ";
-        style = "fg:${accent} bg:${background-alt}";
-        format = "on [$symbol$branch]($style)[](${background-alt}) ";
+        symbol = " ";
+        # If on main: Blue/Green.
+        # If on ANY other branch: RED BACKGROUND (Danger Mode)
+        style = "bg:red fg:white bold";
+        format = "on [$symbol$branch]($style) ";
       };
 
       git_status = {

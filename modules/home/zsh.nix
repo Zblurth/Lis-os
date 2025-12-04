@@ -1,6 +1,4 @@
 {
-  pkgs,
-  host,
   ...
 }:
 let
@@ -57,24 +55,11 @@ in
       if [ -f $HOME/.zshrc-personal ]; then
         source $HOME/.zshrc-personal
       fi
-
-      # Launch fastfetch on first terminal spawn
-      if [[ -z "$FASTFETCH_LAUNCHED" ]]; then
-        export FASTFETCH_LAUNCHED=1
-        fastfetch
-      fi
     '';
 
     shellAliases = {
       c = "clear";
-      fr = "fr"; # Changed to rely on your script
-      fu = "up-os"; # Changed to rely on your script
-      rebuild = "fr";
-      update = "up-os";
-      cleanup = "clean-os";
-      # ncg alias is redundant with clean-os
       man = "batman";
-      # hosts/switch aliases are for tools you removed, can delete if unused
     };
   };
 }

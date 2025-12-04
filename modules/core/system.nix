@@ -1,4 +1,4 @@
-{ pkgs, host, ... }:
+{ pkgs, ... }:
 let
   variables = import ../../hosts/variables.nix;
   inherit (variables) consoleKeyMap timeZone;

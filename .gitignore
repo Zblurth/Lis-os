@@ -13,3 +13,6 @@ repomix-output.txt
 # Optional: History files if you don't want them public
 .bash_history
 .zsh_history
+
+#vm
+*.qcow2

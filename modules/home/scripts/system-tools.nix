@@ -29,7 +29,7 @@ in
       set -e
       echo -e "${blue}📦 Staging all changes...${reset}"
       cd ${configDir} || exit
-      git add .  # <--- ADDED THIS
+      git add .
 
       echo -e "${blue}🔄 Fetching flake updates...${reset}"
       nix flake update
@@ -41,7 +41,33 @@ in
       echo -e "${green}🎉 System updated successfully!${reset}"
     '')
 
-    # ... clean-os, hist-os, debug-os ...
+    # --- NEW: Test OS (test-os) ---
+    # Safe Mode: Builds and activates in RAM.
+    # Rebooting reverts to the previous state.
+    (pkgs.writeShellScriptBin "test-os" ''
+      set -e
+      echo -e "${blue}🧪 STARTING TEST RUN (Ephemeral)...${reset}"
+      cd ${configDir} || exit
+
+      echo -e "${blue}📦 Staging changes...${reset}"
+      git add .
+
+      echo -e "${blue}🔨 Building and Activating Test Environment...${reset}"
+      # 'nh os test' runs 'nixos-rebuild test' but cleaner
+      NIX_CONFIG="warn-dirty = false" nh os test .
+
+      echo -e "${green}✅ Test Environment Active!${reset}"
+      echo -e "${blue}ℹ️  NOTE: Changes are live but NOT permanent.${reset}"
+      echo -e "${blue}ℹ️  Reboot your PC to discard these changes.${reset}"
+      echo -e "${blue}ℹ️  If happy, run 'fr' to commit them.${reset}"
+
+      if command -v niri &> /dev/null; then
+        echo -e "${blue}🔍 Validating Niri...${reset}"
+        niri validate || echo -e "${red}⚠️ Niri config issues detected${reset}"
+      fi
+    '')
+
+    # --- Clean OS ---
     (pkgs.writeShellScriptBin "clean-os" ''
       echo "🧹 System Garbage Collection"
       read -p "Keep how many generations? " keep_num
