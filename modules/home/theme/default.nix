@@ -1,19 +1,24 @@
-{ pkgs, config, ... }:
+{ pkgs, ... }:
 {
-  # 1. Install Dependencies locally (Self-contained module)
+  imports = [ 
+    ./scripts.nix 
+  ];
+
+  # Dependencies
   home.packages = with pkgs; [
     matugen
     swww
-    imagemagick # For thumbnail generation
+    imagemagick
+    rofi
   ];
 
-  # 2. Link the Matugen Config & Templates
-  # We use xdg.configFile to map them to ~/.config/matugen
+  # Link Configuration Files
   xdg.configFile = {
     "matugen/config.toml".source = ./matugen.toml;
-    
-    # We will create these template files in the next steps
     "matugen/templates/niri.kdl".source = ./templates/niri.kdl;
     "matugen/templates/rofi.rasi".source = ./templates/rofi.rasi;
+    
+    # Link the WallSelect theme we just created
+    "rofi/WallSelect.rasi".source = ../desktop/rofi/config/WallSelect.rasi;
   };
 }

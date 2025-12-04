@@ -17,7 +17,6 @@ in
       echo -e "${blue}🚀 Rebuilding NixOS...${reset}"
       NIX_CONFIG="warn-dirty = false" nh os switch .
 
-      # Optional: Niri validation (can be removed if annoying)
       if command -v niri &> /dev/null; then
         echo -e "${blue}🔍 Validating Niri...${reset}"
         niri validate || echo -e "${red}⚠️ Niri config issues detected${reset}"
@@ -41,19 +40,20 @@ in
       echo -e "${green}🎉 System updated successfully!${reset}"
     '')
 
-    # --- NEW: Test OS (test-os) ---
-    # Safe Mode: Builds and activates in RAM.
-    # Rebooting reverts to the previous state.
+    # --- Test OS (test-os) ---
     (pkgs.writeShellScriptBin "test-os" ''
       set -e
       echo -e "${blue}🧪 STARTING TEST RUN (Ephemeral)...${reset}"
       cd ${configDir} || exit
 
+      echo -e "${blue}🧹 Cleaning old backups...${reset}"
+      # SAFE TO REMOVE: These are just collision backups from Home Manager
+      find "$HOME/.config" -name "*.backup" -delete
+
       echo -e "${blue}📦 Staging changes...${reset}"
       git add .
 
       echo -e "${blue}🔨 Building and Activating Test Environment...${reset}"
-      # 'nh os test' runs 'nixos-rebuild test' but cleaner
       NIX_CONFIG="warn-dirty = false" nh os test .
 
       echo -e "${green}✅ Test Environment Active!${reset}"
@@ -67,7 +67,7 @@ in
       fi
     '')
 
-    # --- Clean OS ---
+    # --- Utils ---
     (pkgs.writeShellScriptBin "clean-os" ''
       echo "🧹 System Garbage Collection"
       read -p "Keep how many generations? " keep_num
@@ -83,10 +83,10 @@ in
     '')
 
     (pkgs.writeShellScriptBin "debug-os" ''
-      cd ${configDir} || exit
-      git add .
-      echo "🧪 Dry Run..."
-      nixos-rebuild dry-build --flake . --show-trace --log-format internal-json -v |& ${pkgs.nix-output-monitor}/bin/nom --json
-    '')
+         cd ${configDir} || exit
+         git add .
+         echo "🧪 Dry Run..."
+         nixos-rebuild dry-build --flake . --show-trace --log-format internal-json -v |& ${pkgs.nix-output-monitor}/bin/nom --json
+       '')
   ];
 }

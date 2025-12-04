@@ -1,0 +1,81 @@
+configuration {
+    modi: "drun,run";
+    show-icons: true;
+    display-drun: "APPS";
+    drun-display-format: "{name}";
+}
+
+@import "colors.rasi"
+
+window {
+    transparency: "real";
+    width: 800px;
+    height: 500px;
+    border-radius: 12px;
+    background-color: @background;
+}
+
+mainbox {
+    children: [ imagebox, listbox ];
+    orientation: horizontal;
+    background-color: transparent;
+    spacing: 0px;
+}
+
+imagebox {
+    expand: false;
+    width: 300px;
+    background-image: url("~/.cache/current_wallpaper.jpg", height);
+    children: [ inputbar ];
+    padding: 20px;
+}
+
+listbox {
+    children: [ listview ];
+    background-color: transparent;
+    padding: 20px;
+}
+
+inputbar {
+    children: [ entry ];
+    background-color: @background-alt;
+    border-radius: 8px;
+    padding: 10px;
+    vertical-align: 1.0; /* Push to bottom */
+}
+
+entry {
+    placeholder: "Search...";
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+listview {
+    columns: 1;
+    lines: 8;
+    spacing: 5px;
+    background-color: transparent;
+}
+
+element {
+    padding: 8px;
+    border-radius: 8px;
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+element selected {
+    background-color: @selected;
+    text-color: @background;
+}
+
+element-icon {
+    size: 24px;
+    background-color: transparent;
+}
+
+element-text {
+    vertical-align: 0.5;
+    background-color: transparent;
+    text-color: inherit;
+}

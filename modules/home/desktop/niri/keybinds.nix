@@ -10,8 +10,9 @@
       Mod+Return { spawn "${terminal}"; }
       Mod+B { spawn "${browser}"; }
       Mod+E { spawn "errands"; }
-      Mod+Space { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
+      Mod+Space { spawn "rofi" "-show" "drun"; }
       Mod+Z { spawn "zeditor"; }
+      Mod+Shift+W { spawn "wall-select"; }
 
       // === Deezer ===
       XF86AudioRaiseVolume allow-when-locked=true { spawn "playerctl" "--player=Deezer" "volume" "0.05+"; }

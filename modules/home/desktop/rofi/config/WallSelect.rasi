@@ -1,0 +1,81 @@
+configuration {
+    show-icons: true;
+}
+
+@import "colors.rasi"
+
+/* Restore the visual style */
+* {
+    /* Sizing variables */
+    var-preview-height: 250px; /* Smaller than before to fit screens better */
+    var-preview-width:  180px; 
+    var-gap-size:       15px;
+    var-item-padding:   10px;
+}
+
+window {
+    transparency: "real";
+    location: center;
+    anchor: center;
+    width: 1200px; /* Fixed width for the grid */
+    height: 500px;
+    border-radius: 16px;
+    background-color: @background;
+    border: 2px solid;
+    border-color: @border-color;
+}
+
+mainbox {
+    children: [ listview ];
+    background-color: transparent;
+    padding: @var-gap-size;
+}
+
+listview {
+    enabled: true;
+    columns: 5;
+    lines: 1; /* Horizontal Flow */
+    cycle: true;
+    dynamic: true;
+    scrollbar: false;
+    
+    layout: vertical;
+    flow: horizontal; /* Scroll left/right */
+    
+    fixed-height: true;
+    fixed-columns: true;
+    spacing: @var-gap-size;
+    background-color: transparent;
+}
+
+element {
+    orientation: vertical;
+    width: @var-preview-width;
+    padding: @var-item-padding;
+    border-radius: 12px;
+    background-color: transparent;
+    text-color: @foreground;
+    cursor: pointer;
+}
+
+element selected {
+    background-color: @selected;
+    text-color: @text-selected;
+}
+
+element-icon {
+    size: @var-preview-height;
+    horizontal-align: 0.5;
+    border-radius: 8px;
+    background-color: transparent;
+    cursor: inherit;
+}
+
+element-text {
+    margin: 5px 0 0 0;
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+    background-color: transparent;
+    text-color: inherit;
+    cursor: inherit;
+}
