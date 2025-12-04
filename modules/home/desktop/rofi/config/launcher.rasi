@@ -1,49 +1,111 @@
-{ pkgs, config, lib, ... }:
-let
-  # Ensure the wallpaper cache exists
-  wallpaperCache = "${config.home.homeDirectory}/.cache/current_wallpaper.jpg";
-in
-{
-  # Install launcher script
-  home.packages = [
-    (pkgs.writeShellScriptBin "launcher" ''
-      #!${pkgs.bash}/bin/bash
-      set -e
+/* ===========================================================================
+   Rofi Theme - Safe Mode (No Shorthands)
+   =========================================================================== */
 
-      # Ensure wallpaper cache exists
-      if [ ! -f "${wallpaperCache}" ]; then
-        # Use default wallpaper from Stylix
-        ${pkgs.imagemagick}/bin/convert "${config.stylix.image}" -resize 640x "${wallpaperCache}"
-      fi
+@import "colors.rasi"
 
-      # Launch rofi with our theme
-      ${pkgs.rofi}/bin/rofi \
-        -show drun \
-        -theme "${config.home.homeDirectory}/.config/rofi/launcher.rasi" \
-        -matching fuzzy \
-        -sort \
-        -sorting-method fzf \
-        -markup-rows \
-        -no-config \
-        -scroll-method 0 \
-        -kb-mode-next "Control+Tab" \
-        -kb-mode-prev "Control+Shift+Tab" \
-        -modes "drun,run,ssh" \
-        -kb-accept-entry "Return" \
-        -kb-row-down "Down" \
-        -kb-row-up "Up" \
-        -kb-accept-custom ""
-    '')
-  ];
+* {
+    background-color:            transparent;
+    text-color:                  @foreground;
+    margin:                      0px;
+    padding:                     0px;
+    spacing:                     0px;
+}
 
-  # Link theme file
-  xdg.configFile."rofi/launcher.rasi".source = ./config/launcher.rasi;
+window {
+    width:                       1000px;
+    height:                      600px;
+    location:                    center;
+    anchor:                      center;
 
-  # Ensure wallpaper is available on startup
-  home.activation.setupWallpaperCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ ! -f "${wallpaperCache}" ]; then
-      echo "Initializing wallpaper cache..."
-      ${pkgs.imagemagick}/bin/convert "${config.stylix.image}" -resize 640x "${wallpaperCache}"
-    fi
-  '';
+    background-color:            @background;
+    border-radius:               16px;
+
+    /* FIXED: Split border properties to allow variables */
+    border:                      2px;
+    border-color:                @selected;
+
+    cursor:                      "default";
+}
+
+mainbox {
+    orientation:                 horizontal;
+    children:                    [ "imagebox", "listbox" ];
+    background-color:            transparent;
+}
+
+imagebox {
+    width:                       350px;
+    expand:                      false;
+
+    /* The ZaneyOS scaling trick */
+    background-image:            url("~/.cache/rofi-launcher.jpg", height);
+
+    orientation:                 vertical;
+    children:                    [ "dummy" ];
+    padding:                     20px;
+}
+
+dummy {
+    expand:                      true;
+    background-color:            transparent;
+}
+
+listbox {
+    expand:                      true;
+    orientation:                 vertical;
+    padding:                     20px;
+    spacing:                     15px;
+    children:                    [ "inputbar", "listview" ];
+}
+
+inputbar {
+    padding:                     12px;
+    border-radius:               10px;
+    background-color:            @background-alt;
+    text-color:                  @foreground;
+    children:                    [ "entry" ];
+}
+
+entry {
+    placeholder:                 "Search apps...";
+    placeholder-color:           @foreground-muted;
+    text-color:                  @foreground;
+    cursor:                      text;
+    vertical-align:              0.5;
+}
+
+listview {
+    columns:                     1;
+    lines:                       8;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   false;
+    spacing:                     8px;
+}
+
+element {
+    orientation:                 horizontal;
+    padding:                     10px;
+    spacing:                     10px;
+    border-radius:               8px;
+    cursor:                      pointer;
+}
+
+element selected {
+    background-color:            @selected;
+    text-color:                  @background;
+}
+
+element-icon {
+    size:                        24px;
+    cursor:                      inherit;
+    background-color:            transparent;
+}
+
+element-text {
+    vertical-align:              0.5;
+    cursor:                      inherit;
+    background-color:            transparent;
+    text-color:                  inherit;
 }

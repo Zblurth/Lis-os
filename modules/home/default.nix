@@ -3,18 +3,14 @@
   ...
 }:
 let
-  variables = import ../../hosts/variables.nix; # Import it manually
+  variables = import ../../hosts/variables.nix;
   barChoice = variables.barChoice or "noctalia";
   defaultShell = variables.defaultShell or "zsh";
 in
 {
   imports = [
-    # --- The New Architecture ---
-    ./desktop/niri          # Moved Niri
-    ./theme                 # The new Theme Engine
-
-    # --- Legacy / Utils ---
     ./appimage.nix
+    ./desktop
     ./environment.nix
     ./fzf.nix
     ./git.nix
@@ -26,6 +22,7 @@ in
     ./scripts
     ./starship.nix
     ./stylix.nix
+    ./theme
     ./thunar.nix
     ./zed.nix
     ./zoxide.nix
