@@ -1,20 +1,13 @@
 { pkgs, ... }:
 
 let
-  # --- COMPRESSED CONTEXT ---
-  minifiedContext = builtins.toJSON {
+  # --- 1. FULL CONTEXT (For the big dump) ---
+  fullContext = builtins.toJSON {
     _meta = {
-      # Updated note: Explicitly tell AI this is JSONL structure
-      note = "Format: JSONL (Lines of JSON). p=path, c=content";
+      note = "Format: JSONL. Full System Dump.";
       os = "NixOS-Unstable";
       wm = "Niri";
-      date = "DATE_PLACEHOLDER";
     };
-    protocol = [
-      "1. ANALYZE REQUEST"
-      "2. DISCUSS STRATEGY (WHY/HOW)"
-      "3. IMPLEMENT"
-    ];
     rules = {
       structure = {
         gui = "modules/home/packages.nix";
@@ -24,7 +17,20 @@ let
       };
       safety = "NO sed. Use cat <<EOF to OVERWRITE files.";
       imports = "Explicit defaults only.";
-      cmds = { rebuild = "fr"; update = "up-os"; };
+    };
+  };
+
+  # --- 2. RICE CONTEXT (Focused on Theming/Desktop) ---
+  riceContext = builtins.toJSON {
+    _meta = {
+      note = "Format: JSONL. RICE/THEME Context Only.";
+      os = "NixOS-Unstable";
+      wm = "Niri";
+      focus = "Visuals, Theming, Desktop Environment, Rofi, Waybar/AGS";
+    };
+    rules = {
+      scope = "Only edit files related to visuals/desktop.";
+      safety = "NO sed. Use cat <<EOF to OVERWRITE files.";
     };
   };
 
@@ -34,51 +40,80 @@ in
     jq
     git
 
+    # ==========================================
+    # 1. LLM-DUMP (Full System)
+    # ==========================================
     (writeShellScriptBin "llm-dump" ''
       set -euo pipefail
-
-      # CHANGE: Use .txt extension so Web UIs accept the upload
       FINAL_OUTPUT="Lis-os-dump.txt"
 
-      # Ensure Root
       REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
       cd "$REPO_ROOT" || exit 1
 
-      echo "🤖 Generating Dense Context (txt)..."
+      echo "🤖 Generating Full Context (txt)..."
 
-      # 1. Inject Context
-      echo '${minifiedContext}' | sed "s/DATE_PLACEHOLDER/$(date '+%Y-%m-%d')/" > "$FINAL_OUTPUT"
+      # Inject Context
+      echo '${fullContext}' > "$FINAL_OUTPUT"
 
-      # 2. Dump Files
-      # Ignoring: git, lockfiles, images, compiled results, and the dump itself
+      # Dump Files
       git ls-files | \
       grep -vE "\.git/|flake\.lock|result|\.png$|\.jpg$|\.jpeg$|\.webp$|\.ico$|\.xml$|\.md$|LICENSE|$FINAL_OUTPUT|modules/home/scripts/" | \
       while read -r file; do
-
         [ -f "$file" ] || continue
 
-        # MINIFICATION:
-        # 1. Delete lines that start with # (comments)
-        # 2. Delete empty lines
-        # 3. Trim trailing whitespace
+        # Minify: Remove comments (# at start of line), empty lines, trailing spaces
         content=$(sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/[[:space:]]*$//' "$file")
 
         if [[ -n "$content" ]]; then
-            jq -n -c \
-            --arg p "$file" \
-            --arg c "$content" \
-            '{"p":$p,"c":$c}' >> "$FINAL_OUTPUT"
+            jq -n -c --arg p "$file" --arg c "$content" '{"p":$p,"c":$c}' >> "$FINAL_OUTPUT"
         fi
+        echo -n "."
+      done
+      echo ""
+      echo "✅ Full Dump: $REPO_ROOT/$FINAL_OUTPUT"
+    '')
 
+    # ==========================================
+    # 2. RICE-DUMP (Theming & Desktop Only)
+    # ==========================================
+    (writeShellScriptBin "rice-dump" ''
+      set -euo pipefail
+      FINAL_OUTPUT="Lis-os-rice.txt"
+
+      REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
+      cd "$REPO_ROOT" || exit 1
+
+      echo "🎨 Generating Rice/Theme Context..."
+
+      # Inject Context
+      echo '${riceContext}' > "$FINAL_OUTPUT"
+
+      # FILTER LOGIC:
+      # 1. desktop/ folder (Niri, Rofi, AGS)
+      # 2. theme/ folder (Matugen, Templates)
+      # 3. Specific styling files: stylix, gtk, qt, kitty, starship
+      # 4. Exclude images and lockfiles
+      git ls-files | \
+      grep -E "modules/home/desktop/|modules/home/theme/|stylix\.nix|gtk\.nix|qt\.nix|kitty\.nix|starship\.nix" | \
+      grep -vE "\.png$|\.jpg$|\.jpeg$|\.webp$|\.ico$|flake\.lock" | \
+      while read -r file; do
+        [ -f "$file" ] || continue
+
+        # Minify (Same logic)
+        content=$(sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/[[:space:]]*$//' "$file")
+
+        if [[ -n "$content" ]]; then
+            jq -n -c --arg p "$file" --arg c "$content" '{"p":$p,"c":$c}' >> "$FINAL_OUTPUT"
+        fi
         echo -n "."
       done
 
       echo ""
-      echo "✅ Done: $REPO_ROOT/$FINAL_OUTPUT"
+      echo "✅ Rice Dump: $REPO_ROOT/$FINAL_OUTPUT"
 
       # Stats
       BYTES=$(wc -c < "$FINAL_OUTPUT")
-      echo "📊 Size: $(($BYTES / 1024)) KB | ~$(($BYTES / 3 / 4)) Tokens"
+      echo "📊 Size: $(($BYTES / 1024)) KB"
     '')
   ];
 }

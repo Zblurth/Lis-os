@@ -8,55 +8,69 @@ in
   home.packages = [
     pkgs.libnotify
     pkgs.imagemagick
-    pkgs.findutils # For xargs
-    pkgs.coreutils # For basename, sort
-
+    pkgs.findutils
+    pkgs.coreutils
     (pkgs.writeShellScriptBin "theme-manager" ''
       set -e
       IMG="$1"
       if [ -z "$IMG" ]; then echo "Usage: theme-manager <path>"; exit 1; fi
-
       if ! pgrep -x swww-daemon > /dev/null; then swww-daemon & sleep 0.5; fi
       swww img "$IMG" --transition-type grow --transition-pos 0.5,0.5 --transition-fps 60 --transition-duration 2
       ln -sf "$IMG" "$HOME/.cache/current_wallpaper.jpg"
-
+      ${pkgs.imagemagick}/bin/convert "$IMG" -resize 640x "$HOME/.cache/current_wallpaper.jpg"
       matugen image "$IMG"
-
       systemctl --user start niri-config-assembler.service
       sync
       niri msg action load-config-file
-
       notify-send "Theme Active" "$(basename "$IMG")" -i "$IMG"
     '')
-
     (pkgs.writeShellScriptBin "wall-select" ''
-      export PATH=${pkgs.imagemagick}/bin:${pkgs.coreutils}/bin:${pkgs.rofi}/bin:${pkgs.findutils}/bin:$PATH
-      mkdir -p "${cacheDir}"
-      
-      echo "Generating thumbnails..."
-      find -L "${wallDir}" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) -print0 | \
+      # ==================== CONFIGURATION ====================
+      THUMB_WIDTH=415
+      THUMB_HEIGHT=550
+      # FIXED: Use ''${...} to escape shell variables in Nix
+      export GEO="''${THUMB_WIDTH}x''${THUMB_HEIGHT}"
+
+      # ==================== PATH & SETUP ====================
+      export PATH=${pkgs.imagemagick}/bin:${pkgs.coreutils}/bin:${pkgs.rofi}/bin:${pkgs.findutils}/bin:${pkgs.libnotify}/bin:$PATH
+      # FIXED: Export this so the xargs subshell can see it
+      export CACHE_DIR="${cacheDir}"
+
+      mkdir -p "$CACHE_DIR"
+
+      # Verify wallpaper directory exists
+      if [ ! -d "${wallDir}" ]; then
+        notify-send "Error" "Wallpaper directory not found: ${wallDir}" -u critical
+        exit 1
+      fi
+
+      # ==================== THUMBNAIL GENERATION ====================
+      echo "Generating thumbnails (parallelized)..."
+      find -L "${wallDir}" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -print0 | \
       xargs -0 -P $(nproc) -I {} sh -c '
         img="{}"
         filename=$(basename "$img")
-        cache="${cacheDir}/$filename"
-        if [ ! -f "$cache" ]; then
-          convert "$img" -resize 500x500^ -gravity center -extent 500x500 "$cache"
+        cache="$CACHE_DIR/$filename"
+
+        # Generate 3:4 aspect ratio thumbnail if missing or older than 7 days
+        if [ ! -f "$cache" ] || [ $(find "$cache" -mtime +7) ]; then
+          # FIXED: escaped GEO here as well using ''${GEO}
+          convert "$img" -thumbnail "''${GEO}^" -gravity center -extent "''${GEO}" "$cache"
         fi
       '
 
-      # Launch Rofi (Gh0stzk Logic: xargs basename -> sort -> loop)
-      # This avoids the complex read -d logic that breaks Nix
+      # ==================== ROFI SELECTOR ====================
       SELECTED=$( \
-        find -L "${wallDir}" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.webp" \) -print0 | \
+        find -L "${wallDir}" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -print0 | \
         xargs -0 basename -a | \
         sort | \
         while IFS= read -r filename; do
-            # \0 separates text from properties, \x1f separates keys
-            printf "%s\0icon\x1f%s/%s\n" "$filename" "${cacheDir}" "$filename"
+            printf "%s\0icon\x1f%s/%s\n" "$filename" "$CACHE_DIR" "$filename"
         done | \
-        rofi -dmenu -theme "${rofiTheme}" -p "Select Wallpaper" -show-icons \
+        ${pkgs.rofi}/bin/rofi -dmenu -theme "${rofiTheme}" -p "Select Wallpaper" -show-icons \
       )
 
+      # ==================== APPLY THEME ====================
       if [ -n "$SELECTED" ]; then
         theme-manager "${wallDir}/$SELECTED"
       fi

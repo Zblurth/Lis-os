@@ -1,81 +1,49 @@
-configuration {
-    modi: "drun,run";
-    show-icons: true;
-    display-drun: "APPS";
-    drun-display-format: "{name}";
-}
+{ pkgs, config, lib, ... }:
+let
+  # Ensure the wallpaper cache exists
+  wallpaperCache = "${config.home.homeDirectory}/.cache/current_wallpaper.jpg";
+in
+{
+  # Install launcher script
+  home.packages = [
+    (pkgs.writeShellScriptBin "launcher" ''
+      #!${pkgs.bash}/bin/bash
+      set -e
 
-@import "colors.rasi"
+      # Ensure wallpaper cache exists
+      if [ ! -f "${wallpaperCache}" ]; then
+        # Use default wallpaper from Stylix
+        ${pkgs.imagemagick}/bin/convert "${config.stylix.image}" -resize 640x "${wallpaperCache}"
+      fi
 
-window {
-    transparency: "real";
-    width: 800px;
-    height: 500px;
-    border-radius: 12px;
-    background-color: @background;
-}
+      # Launch rofi with our theme
+      ${pkgs.rofi}/bin/rofi \
+        -show drun \
+        -theme "${config.home.homeDirectory}/.config/rofi/launcher.rasi" \
+        -matching fuzzy \
+        -sort \
+        -sorting-method fzf \
+        -markup-rows \
+        -no-config \
+        -scroll-method 0 \
+        -kb-mode-next "Control+Tab" \
+        -kb-mode-prev "Control+Shift+Tab" \
+        -modes "drun,run,ssh" \
+        -kb-accept-entry "Return" \
+        -kb-row-down "Down" \
+        -kb-row-up "Up" \
+        -kb-accept-custom ""
+    '')
+  ];
 
-mainbox {
-    children: [ imagebox, listbox ];
-    orientation: horizontal;
-    background-color: transparent;
-    spacing: 0px;
-}
+  # Link theme file
+  xdg.configFile."rofi/launcher.rasi".source = ./config/launcher.rasi;
 
-imagebox {
-    expand: false;
-    width: 300px;
-    background-image: url("~/.cache/current_wallpaper.jpg", height);
-    children: [ inputbar ];
-    padding: 20px;
-}
-
-listbox {
-    children: [ listview ];
-    background-color: transparent;
-    padding: 20px;
-}
-
-inputbar {
-    children: [ entry ];
-    background-color: @background-alt;
-    border-radius: 8px;
-    padding: 10px;
-    vertical-align: 1.0; /* Push to bottom */
-}
-
-entry {
-    placeholder: "Search...";
-    background-color: transparent;
-    text-color: @foreground;
-}
-
-listview {
-    columns: 1;
-    lines: 8;
-    spacing: 5px;
-    background-color: transparent;
-}
-
-element {
-    padding: 8px;
-    border-radius: 8px;
-    background-color: transparent;
-    text-color: @foreground;
-}
-
-element selected {
-    background-color: @selected;
-    text-color: @background;
-}
-
-element-icon {
-    size: 24px;
-    background-color: transparent;
-}
-
-element-text {
-    vertical-align: 0.5;
-    background-color: transparent;
-    text-color: inherit;
+  # Ensure wallpaper is available on startup
+  home.activation.setupWallpaperCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -f "${wallpaperCache}" ]; then
+      echo "Initializing wallpaper cache..."
+      ${pkgs.imagemagick}/bin/convert "${config.stylix.image}" -resize 640x "${wallpaperCache}"
+    fi
+  '';
 }

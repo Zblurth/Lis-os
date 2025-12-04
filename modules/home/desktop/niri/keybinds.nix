@@ -10,7 +10,7 @@
       Mod+Return { spawn "${terminal}"; }
       Mod+B { spawn "${browser}"; }
       Mod+E { spawn "errands"; }
-      Mod+Space { spawn "rofi" "-show" "drun"; }
+      Mod+Space { spawn "launcher"; }
       Mod+Z { spawn "zeditor"; }
       Mod+Shift+W { spawn "wall-select"; }
 
