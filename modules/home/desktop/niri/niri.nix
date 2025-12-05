@@ -15,11 +15,11 @@ let
     monitorConfig
     ;
   barChoice = variables.barChoice or "waybar";
-  
+
   hostKeybindsPath = ./hosts/${host}/keybinds.nix;
   hostKeybinds =
     if builtins.pathExists hostKeybindsPath then import hostKeybindsPath { inherit host; } else "";
-  
+
   keybindsModule = import ./keybinds.nix {
     inherit host terminal browser barChoice hostKeybinds config;
   };
@@ -37,7 +37,7 @@ let
       import hostOutputsPath { inherit host; }
     else
       monitorConfig;
-      
+
   hostWindowRulesPath = ./hosts/${host}/windowrules.nix;
   hostWindowRules =
     if builtins.pathExists hostWindowRulesPath then
@@ -55,7 +55,7 @@ let
     ${windowrulesModule}
     ${hostWindowRules}
     ${startupModule}
-    
+
     environment {
           XDG_CURRENT_DESKTOP "niri"
           GTK_USE_PORTAL "1"
@@ -105,23 +105,20 @@ in
       Before = [ "graphical-session.target" ];
     };
     Service = {
-      Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "assemble-niri-config" ''
-        BASE="$HOME/.config/niri/config-base.kdl"
-        COLORS="$HOME/.config/niri/colors.kdl"
-        FINAL="$HOME/.config/niri/config.kdl"
-
-        # 1. Create a dummy color file if missing (Prevent crash)
-        if [ ! -f "$COLORS" ]; then
-          mkdir -p "$(dirname "$COLORS")"
-          echo "// Fallback Colors" > "$COLORS"
-          echo "window-rule { border { active-color \"#ff0000\"; } }" >> "$COLORS"
-        fi
-
-        # 2. Combine files
-        cat "$BASE" "$COLORS" > "$FINAL"
-      '';
-    };
+          Type = "oneshot";
+          ExecStart = pkgs.writeShellScript "assemble-niri-config" ''
+            BASE="$HOME/.config/niri/config-base.kdl"
+            COLORS="$HOME/.config/niri/colors.kdl"
+            FINAL="$HOME/.config/niri/config.kdl"
+            if [ ! -f "$COLORS" ]; then
+              mkdir -p "$(dirname "$COLORS")"
+              echo "// Fallback Colors" > "$COLORS"
+              # FIXED: Removed semicolon inside the brace
+              echo "window-rule { border { active-color \"#ff0000\" } }" >> "$COLORS"
+            fi
+            cat "$BASE" "$COLORS" > "$FINAL"
+          '';
+        };
     Install.WantedBy = [ "graphical-session.target" ];
   };
 

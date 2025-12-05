@@ -8,8 +8,8 @@
 
     theme = {
       mode = "system";
-      light = "Pywal"; # CHANGED
-      dark = "Pywal";  # CHANGED
+      light = "LisTheme"; # CHANGED
+      dark = "LisTheme";  # CHANGED
     };
 
     autosave = "on_focus_change";

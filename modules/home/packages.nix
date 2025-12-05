@@ -10,13 +10,13 @@
     zed-editor        # Code
 
     # ========================
-    # SYSTEM TOOLS
+    # UTILITIES
     # ========================
-    networkmanagerapplet
-    ddcutil           # Monitor control
-    playerctl         # Media keys
-    swayosd           # Volume/brightness OSD
-    brightnessctl
+    gemini-cli        # Gemini protocol
+    nvd               # Nix diffs
+    errands           # Todo app
+    github-cli        # Manage Github
+    hyfetch           # Gay flex
 
     # ========================
     # FILE MANAGEMENT & MEDIA
@@ -35,12 +35,19 @@
     swappy            # Edit screenshots
 
     # ========================
-    # UTILITIES
+    # RICING
     # ========================
-    gemini-cli        # Gemini protocol
-    nvd               # Nix diffs
-    errands           # Todo app
-    github-cli        # Manage Github
-    hyfetch           # Gay flex
+    imagemagick      # Convert bitmap images
+    pastel           # Palette generator
+    swww             # Wallpaper switch
+
+    # ========================
+    # SYSTEM TOOLS
+    # ========================
+    networkmanagerapplet
+    ddcutil           # Monitor control
+    playerctl         # Media keys
+    swayosd           # Volume/brightness OSD
+    brightnessctl
   ];
 }
