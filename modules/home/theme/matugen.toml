@@ -1,8 +1,5 @@
 [config]
 reload_apps = false
-# "fruit_salad" = Maximum color diversity (Complementary/Triadic logic)
-# "fidelity" = Uses exact colors from the image (good if image is colorful)
-# "content" = Default (Harmonious/Boring)
 scheme = "fruit_salad"
 contrast = 0.0
 
@@ -16,17 +13,12 @@ output_path = "~/.config/niri/colors.kdl"
 input_path = "~/.config/matugen/templates/rofi.rasi"
 output_path = "~/.config/rofi/colors.rasi"
 
-[templates.zed]
-input_path = "~/.config/matugen/templates/zed.json"
-output_path = "~/.config/zed/themes/matugen.json"
+# Removed Zed (Handled by Pywal)
+# Removed Kitty (Handled by Pywal)
 
 [templates.vesktop]
 input_path = "~/.config/matugen/templates/discord.css"
 output_path = "~/.config/vesktop/themes/lis.theme.css"
-
-[templates.kitty]
-input_path = "~/.config/matugen/templates/kitty.conf"
-output_path = "~/.config/kitty/colors.conf"
 
 [templates.gtk3]
 input_path = "~/.config/matugen/templates/gtk.css"
