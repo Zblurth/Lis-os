@@ -7,26 +7,95 @@
       "name": "Matugen",
       "appearance": "dark",
       "style": {
-        "background": "{{colors.surface.default.hex}}",
-        "foreground": "{{colors.on_surface.default.hex}}",
         "border": "{{colors.outline.default.hex}}",
-        "border.variant": "{{colors.surface_container_highest.default.hex}}",
-        "elevated_surface.background": "{{colors.surface_container.default.hex}}",
-        "surface.background": "{{colors.surface.default.hex}}",
+        "border.variant": "{{colors.surface_container_high.default.hex}}",
+        "elevated_surface.background": "{{colors.surface_container_highest.default.hex}}",
+        "surface.background": "{{colors.surface_container.default.hex}}",
+
         "editor.background": "{{colors.surface.default.hex}}",
         "editor.foreground": "{{colors.on_surface.default.hex}}",
+
         "editor.active_line.background": "{{colors.surface_container_highest.default.hex}}",
         "editor.line_number": "{{colors.on_surface_variant.default.hex}}",
-        "editor.active_line_number": "{{colors.primary.default.hex}}",
+        "editor.active_line_number": "{{colors.primary_fixed.default.hex}}",
+
+        "tab_bar.background": "{{colors.surface.default.hex}}",
+        "tab.inactive_background": "{{colors.surface.default.hex}}",
+        "tab.active_background": "{{colors.surface_container_high.default.hex}}",
+
+        "toolbar.background": "{{colors.surface.default.hex}}",
+        "status_bar.background": "{{colors.surface_container_highest.default.hex}}",
+        "panel.background": "{{colors.surface_container_low.default.hex}}",
+
+        "git.created": "{{colors.primary_fixed.default.hex}}",
+        "git.modified": "{{colors.tertiary_fixed.default.hex}}",
+        "git.deleted": "{{colors.error.default.hex}}",
+        "git.ignored": "{{colors.outline.default.hex}}",
+        "git.conflict": "{{colors.error_container.default.hex}}",
+
         "terminal.background": "{{colors.surface.default.hex}}",
-        "terminal.ansi.black": "{{colors.surface.default.hex}}",
+        "terminal.ansi.black": "{{colors.surface_container_highest.default.hex}}",
         "terminal.ansi.red": "{{colors.error.default.hex}}",
-        "terminal.ansi.green": "{{colors.primary.default.hex}}",
-        "terminal.ansi.yellow": "{{colors.tertiary.default.hex}}",
-        "terminal.ansi.blue": "{{colors.secondary.default.hex}}",
-        "terminal.ansi.magenta": "{{colors.primary.default.hex}}",
-        "terminal.ansi.cyan": "{{colors.secondary.default.hex}}",
-        "terminal.ansi.white": "{{colors.on_surface.default.hex}}"
+        "terminal.ansi.green": "{{colors.primary_fixed.default.hex}}",
+        "terminal.ansi.yellow": "{{colors.tertiary_fixed.default.hex}}",
+        "terminal.ansi.blue": "{{colors.secondary_fixed.default.hex}}",
+        "terminal.ansi.magenta": "{{colors.primary_fixed_dim.default.hex}}",
+        "terminal.ansi.cyan": "{{colors.on_secondary_container.default.hex}}",
+        "terminal.ansi.white": "{{colors.on_surface.default.hex}}",
+
+        "syntax": {
+          "comment": {
+            "color": "{{colors.on_surface_variant.default.hex}}",
+            "font_style": "italic"
+          },
+          "doc_comment": {
+            "color": "{{colors.on_surface_variant.default.hex}}",
+            "font_style": "italic"
+          },
+
+          "keyword": {
+            "color": "{{colors.primary_fixed.default.hex}}",
+            "font_weight": 700
+          },
+          "type": {
+            "color": "{{colors.secondary_fixed.default.hex}}",
+            "font_weight": 700
+          },
+
+          "function": {
+            "color": "{{colors.on_tertiary_container.default.hex}}",
+            "font_weight": 700
+          },
+          "method": {
+            "color": "{{colors.on_tertiary_container.default.hex}}",
+            "font_weight": 700
+          },
+
+          "string": { "color": "{{colors.tertiary_fixed.default.hex}}" },
+          "string.escape": { "color": "{{colors.primary_fixed.default.hex}}" },
+          "string.regex": { "color": "{{colors.primary_fixed.default.hex}}" },
+
+          "property": {
+            "color": "{{colors.on_secondary_container.default.hex}}"
+          },
+          "variable": { "color": "{{colors.on_surface.default.hex}}" },
+          "variable.special": {
+            "color": "{{colors.primary_fixed.default.hex}}"
+          },
+
+          "number": { "color": "{{colors.error.default.hex}}" },
+          "boolean": { "color": "{{colors.error.default.hex}}" },
+          "constant": { "color": "{{colors.error.default.hex}}" },
+
+          "operator": { "color": "{{colors.outline.default.hex}}" },
+          "punctuation": { "color": "{{colors.outline.default.hex}}" },
+          "punctuation.bracket": {
+            "color": "{{colors.on_surface_variant.default.hex}}"
+          },
+          "punctuation.delimiter": {
+            "color": "{{colors.on_surface_variant.default.hex}}"
+          }
+        }
       }
     }
   ]

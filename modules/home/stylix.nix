@@ -11,15 +11,14 @@ lib.mkIf stylixEnable {
   stylix = {
     enable = true;
     image = stylixImage;
-    
-    # CRITICAL: Disable auto-theming so Matugen can take over
     autoEnable = false;
 
-    # We only want Stylix to manage these:
-    targets.gtk.enable = true;
-    targets.qt.enable = true;
+    # Only disable what we are actively managing
+    targets.gtk.enable = false;
+    targets.kitty.enable = false;
 
     polarity = "dark";
+
     cursor = {
       package = pkgs.bibata-cursors;
       name = "Bibata-Modern-Ice";
