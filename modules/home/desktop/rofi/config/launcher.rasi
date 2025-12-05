@@ -80,21 +80,21 @@ dummy {
 mode-switcher {
     orientation:                 horizontal;
     enabled:                     true;
-    spacing:                     20px;
+    spacing:                     8px;           /* Reduced from 20px */
     background-color:            @background;
     text-color:                  @foreground;
     opacity:                     0.9;
-    padding:                     10px;
-    border-radius:               12px;
+    padding:                     4px;           /* Reduced from 10px */
+    border-radius:               8px;           /* Reduced from 12px */
 }
 
 button {
-    padding:                     10px;
-    border-radius:               8px;
+    padding:                     6px 12px;      /* Smaller padding */
+    border-radius:               6px;           /* Reduced from 8px */
     background-color:            transparent;
     text-color:                  @foreground-muted;
     cursor:                      pointer;
-    font:                        "Twemoji 24";
+    font:                        "Sans 9";      /* Smaller font */
 }
 
 button selected {
@@ -167,7 +167,7 @@ element-icon {
 }
 
 element-icon {
-    size:                        48px;
+    size:                        48px;  /* MAKE THIS LARGER IF ICONS ARE HIDDEN */
     horizontal-align:            0.5;
     background-color:            transparent;
 }

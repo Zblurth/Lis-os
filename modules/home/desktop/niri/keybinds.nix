@@ -10,9 +10,11 @@
       Mod+Return { spawn "${terminal}"; }
       Mod+B { spawn "${browser}"; }
       Mod+E { spawn "errands"; }
-      Mod+Space { spawn "launcher"; }
       Mod+Z { spawn "zeditor"; }
+      Mod+Space { spawn "launcher"; }
+      Ctrl+Q { spawn "launcher" "windows"; }
       Mod+Shift+W { spawn "wall-select"; }
+
 
       // === Deezer ===
       XF86AudioRaiseVolume allow-when-locked=true { spawn "playerctl" "--player=Deezer" "volume" "0.05+"; }

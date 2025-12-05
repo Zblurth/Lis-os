@@ -1,7 +1,7 @@
 { pkgs, ... }:
-
 {
   gtk = {
+    enable = true;
     iconTheme = {
       name = "Tela-purple-dark";
       package = pkgs.tela-icon-theme;

@@ -55,9 +55,9 @@ in
       # Inject Context
       echo '${fullContext}' > "$FINAL_OUTPUT"
 
-      # Dump Files
+      # Dump Files - Exclude .txt files, .git, lock files, images, and previous dump
       git ls-files | \
-      grep -vE "\.git/|flake\.lock|result|\.png$|\.jpg$|\.jpeg$|\.webp$|\.ico$|\.xml$|\.md$|LICENSE|$FINAL_OUTPUT|modules/home/scripts/" | \
+      grep -vE "\.git/|flake\.lock|result|\.png$|\.jpg$|\.jpeg$|\.webp$|\.ico$|\.xml$|\.md$|\.txt$|LICENSE|modules/home/scripts/" | \
       while read -r file; do
         [ -f "$file" ] || continue
 
@@ -92,10 +92,10 @@ in
       # 1. desktop/ folder (Niri, Rofi, AGS)
       # 2. theme/ folder (Matugen, Templates)
       # 3. Specific styling files: stylix, gtk, qt, kitty, starship
-      # 4. Exclude images and lockfiles
+      # 4. Exclude images, lockfiles, and .txt files
       git ls-files | \
       grep -E "modules/home/desktop/|modules/home/theme/|stylix\.nix|gtk\.nix|qt\.nix|kitty\.nix|starship\.nix" | \
-      grep -vE "\.png$|\.jpg$|\.jpeg$|\.webp$|\.ico$|flake\.lock" | \
+      grep -vE "\.png$|\.jpg$|\.jpeg$|\.webp$|\.ico$|\.txt$|flake\.lock" | \
       while read -r file; do
         [ -f "$file" ] || continue
 
