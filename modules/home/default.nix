@@ -24,6 +24,7 @@ in
     ./stylix.nix
     ./theme
     ./thunar.nix
+    ./vesktop.nix
     ./zed.nix
     ./zoxide.nix
   ]
