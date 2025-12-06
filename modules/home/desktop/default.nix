@@ -1,8 +1,13 @@
-{ ... }:
+{ inputs, host, ... }:
 {
   imports = [
-    ./ags/default.nix
     ./niri
     ./rofi
+    ./ags
   ];
+  config = {
+    _module.args = {
+      inherit inputs host;
+    };
+  };
 }

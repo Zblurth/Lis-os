@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2022",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "jsx": "react",
+    "jsxFactory": "Astal.Gtk.Gtk",
+    "jsxFragmentFactory": "Astal.Gtk.Fragment"
+  },
+  "include": ["./**/*"]
+}

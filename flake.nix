@@ -1,25 +1,47 @@
 {
   description = "Lis-os";
 
+  nixConfig = {
+    extra-substituters = [ "https://nyx.chaotic.cx" ];
+    extra-trusted-public-keys = [ "nyx.chaotic.cx-1:HfnXSw4pjGN/t5FvAFXxI4uE8r2wkTy85vRpne3w8Fs=" ];
+  };
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     stylix.url = "github:danth/stylix";
     noctalia.url = "github:noctalia-dev/noctalia-shell";
+    niri-flake.url = "github:sodiboo/niri-flake";
 
-    # --- ADD THIS LINE ---
-    ags.url = "github:Aylur/ags/v1";
+    # THE COMPLETE STACK
+    astal = {
+      url = "github:aylur/astal";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    ags = {
+      url = "github:aylur/ags";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { nixpkgs, flake-utils, ... }@inputs:
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      niri-flake,
+      astal,
+      ags,
+      ...
+    }@inputs:
     let
       system = "x86_64-linux";
 
-      # Helper function to create a host configuration
       mkHost =
         {
           hostname,
@@ -31,19 +53,18 @@
           specialArgs = {
             inherit inputs;
             host = hostname;
-            inherit profile;
-            inherit username;
+            inherit profile username;
           };
           modules = [
+            ({ ... }: {
+               nixpkgs.overlays = [ niri-flake.overlays.niri ];
+            })
             ./hosts/default.nix
           ];
         };
-
     in
     {
       nixosConfigurations = {
-        # Default template configuration
-        # Users will create their own host configurations during installation
         nixos = mkHost {
           hostname = "nixos";
           profile = "amd";

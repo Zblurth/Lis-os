@@ -1,66 +1,26 @@
-@import url("file:///home/lune/.cache/wal/ags-colors.css");
+/* Import the generated colors from pywal/theme-engine */
+@import "../../.cache/wal/ags-colors.css";
 
-* {
-  border: none;
-  background: none;
-  font-family: "JetBrains Mono Nerd Font";
-  font-size: 15px; /* Slightly bigger font */
-  font-weight: bold;
+window {
+    background-color: transparent;
 }
 
-window#bar-0 {
-  background-color: transparent;
+.Bar {
+    background-color: @bg;
+    color: @fg;
+    padding: 4px;
+    border-top: 2px solid @accent;
 }
 
-.bar {
-  background-color: @bg;
-  color: @fg;
-  /* Thicker bar: 8px top/bottom padding */
-  padding: 8px 16px;
-  border-top: 2px solid @border;
+.Workspaces button {
+    background-color: @hover;
+    color: @fg;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 0 4px;
 }
 
-/* --- WIDGETS --- */
-
-.nixos-icon {
-  font-size: 24px; /* Bigger icon */
-  color: @accent;
-  margin-right: 12px;
-}
-
-.clock {
-  background-color: @hover;
-  padding: 6px 14px;
-  border-radius: 12px;
-  color: @fg;
-}
-
-.workspaces {
-  background-color: @hover;
-  border-radius: 20px;
-  padding: 6px;
-  min-width: 100px; /* Ensure it has body even with few workspaces */
-}
-
-.workspace {
-  color: @fg;
-  padding: 0px 10px;
-  margin: 0px 4px;
-  border-radius: 12px;
-  min-width: 24px;
-}
-
-.workspace.active {
-  background-color: @accent;
-  color: @accent_fg;
-  /* Fallback colors if variables fail */
-  background-color: #cba6f7;
-  color: #11111b;
-}
-
-.placeholder {
-  color: @accent;
-  background-color: @hover;
-  padding: 6px 12px;
-  border-radius: 12px;
+.Workspaces button.focused {
+    background-color: @accent;
+    color: @accent_fg;
 }

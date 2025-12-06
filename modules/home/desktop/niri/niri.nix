@@ -1,10 +1,13 @@
 {
-  host,
   config,
   pkgs,
   lib,
+  inputs,
+  host,
+  astalPkgs,
   ...
 }:
+
 let
   variables = import ../../../../hosts/variables.nix;
   inherit (variables)
@@ -14,7 +17,11 @@ let
     startupApps
     monitorConfig
     ;
+
   barChoice = variables.barChoice or "waybar";
+
+  # FIX: Use .niri instead of .default
+  niriPkg = pkgs.niri;
 
   hostKeybindsPath = ./hosts/${host}/keybinds.nix;
   hostKeybinds =
@@ -31,7 +38,6 @@ let
       ;
   };
   windowrulesModule = import ./windowrules.nix { inherit host; };
-  # Pass config to layout module so it can read settings if needed
   layoutModule = import ./layout.nix { inherit config; };
   workspacesModule = import ./workspaces.nix { };
   startupModule = import ./startup.nix {
@@ -98,7 +104,7 @@ let
 in
 {
   home.packages = with pkgs; [
-    niri
+    niriPkg
     udiskie
     xwayland-satellite
     swww
@@ -108,10 +114,8 @@ in
     swappy
   ];
 
-  # Write the Base Config
   xdg.configFile."niri/config-base.kdl".text = baseConfig;
 
-  # --- THE BRIDGE SERVICE ---
   systemd.user.services.niri-config-assembler = {
     Unit = {
       Description = "Assemble Niri Config (Base + Colors)";
@@ -126,8 +130,7 @@ in
         if [ ! -f "$COLORS" ]; then
           mkdir -p "$(dirname "$COLORS")"
           echo "// Fallback Colors" > "$COLORS"
-          # FIXED: Removed semicolon inside the brace
-          echo "window-rule { border { active-color \"#ff0000\" } }" >> "$COLORS"
+          echo "window-rule { border { active-color "#ff0000" } }" >> "$COLORS"
         fi
         cat "$BASE" "$COLORS" > "$FINAL"
       '';
@@ -135,12 +138,10 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  # Activation: Assemble config on login/switch
   home.activation.setupNiriConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD ${pkgs.systemd}/bin/systemctl --user start niri-config-assembler.service
   '';
 
-  # --- Session Services ---
   systemd.user.targets.niri-session = {
     Unit = {
       Description = "Niri compositor session";
