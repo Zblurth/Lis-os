@@ -1,8 +1,8 @@
 { ... }:
 {
   imports = [
+    ./ags/default.nix
     ./niri
     ./rofi
-    # ./ags # We will do this later
   ];
 }

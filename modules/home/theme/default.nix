@@ -7,6 +7,8 @@
   # --- Manual Template Definitions ---
   xdg.configFile."wal/templates/vesktop.css".source = ./templates/vesktop.template;
 
+  xdg.configFile."wal/templates/ags-colors.css".source = ./templates/ags-colors.css;
+
   # --- FIX: Restore the WallSelect theme file ---
   xdg.configFile."rofi/WallSelect.rasi".source = ../desktop/rofi/config/WallSelect.rasi;
 

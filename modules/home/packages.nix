@@ -21,6 +21,7 @@
     nvd # Nix diffs
     rofi # Application launcher (Added)
     starship # Custom prompt shell
+    libnotify # For notify-send
 
     # ========================
     # FILE MANAGEMENT & MEDIA

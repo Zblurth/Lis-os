@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 {
   xdg.configFile."zed/settings.json".text = builtins.toJSON {
     ui_font_size = 16;
@@ -15,6 +15,12 @@
       font_family = "JetBrains Mono";
       font_size = 15;
     };
+
+    # --- FIX: Treat CSS as SCSS to allow variables ---
+    file_types = {
+      "SCSS" = [ "css" ];
+    };
+
     languages = {
       Nix = {
         language_servers = [ "nixd" ];
@@ -40,6 +46,5 @@
     };
   };
 
-  # Source the template from the separate file
   xdg.configFile."wal/templates/zed.json".source = ../theme/templates/zed.template;
 }

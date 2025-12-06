@@ -15,7 +15,6 @@
       Mod+Space { spawn "launcher"; }
       Ctrl+Q { spawn "launcher" "windows"; }
       Mod+Shift+W { spawn "wall-select"; }
-      Mod+V { spawn "rofi" "-show" "clipboard" "-modi" "clipboard:rofi-clip-list,Wipe:rofi-clip-wipe" "-theme" "clipboard.rasi"; }
 
       // === File Manager ===
       Mod+T { spawn "thunar"; }
