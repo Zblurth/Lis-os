@@ -12,30 +12,15 @@
       Mod+E { spawn "errands"; }
       Mod+Z { spawn "zeditor"; }
 
+      Mod+Space { spawn "launcher"; }
+      Ctrl+Q { spawn "launcher" "windows"; }
+      Mod+Shift+W { spawn "wall-select"; }
+      Mod+V { spawn "rofi" "-show" "clipboard" "-modi" "clipboard:rofi-clip-list,Wipe:rofi-clip-wipe" "-theme" "clipboard.rasi"; }
+
       // === File Manager ===
       Mod+T { spawn "thunar"; }
       // Floating Thunar (Requires window rule)
       Mod+Shift+T { spawn "thunar" "--name" "thunar-float"; }
-
-      Mod+Space { spawn "launcher"; }
-      Ctrl+Q { spawn "launcher" "windows"; }
-      Mod+Shift+W { spawn "wall-select"; }
-
-      // === Audio (Deezer) ===
-      XF86AudioRaiseVolume allow-when-locked=true { spawn "playerctl" "--player=Deezer" "volume" "0.05+"; }
-      XF86AudioLowerVolume allow-when-locked=true { spawn "playerctl" "--player=Deezer" "volume" "0.05-"; }
-      XF86AudioMute        allow-when-locked=true { spawn "playerctl" "--player=Deezer" "play-pause"; }
-      XF86AudioPlay        allow-when-locked=true { spawn "playerctl" "--player=Deezer" "play-pause"; }
-      XF86AudioNext        allow-when-locked=true { spawn "playerctl" "--player=Deezer" "next"; }
-      XF86AudioPrev        allow-when-locked=true { spawn "playerctl" "--player=Deezer" "previous"; }
-
-      // === Brightness (SwayOSD) ===
-      // Standard Keys
-      XF86MonBrightnessUp   { spawn "swayosd-client" "--brightness" "raise"; }
-      XF86MonBrightnessDown { spawn "swayosd-client" "--brightness" "lower"; }
-      // Desktop Fallback
-      Mod+F1 { spawn "swayosd-client" "--brightness" "lower"; }
-      Mod+F2 { spawn "swayosd-client" "--brightness" "raise"; }
 
       // === System & Window Management ===
       Mod+S { screenshot; }
@@ -65,6 +50,22 @@
 
       Mod+J     { focus-window-down; }
       Mod+K     { focus-window-up; }
+
+      // === Audio (Deezer) ===
+      XF86AudioRaiseVolume allow-when-locked=true { spawn "playerctl" "--player=Deezer" "volume" "0.05+"; }
+      XF86AudioLowerVolume allow-when-locked=true { spawn "playerctl" "--player=Deezer" "volume" "0.05-"; }
+      XF86AudioMute        allow-when-locked=true { spawn "playerctl" "--player=Deezer" "play-pause"; }
+      XF86AudioPlay        allow-when-locked=true { spawn "playerctl" "--player=Deezer" "play-pause"; }
+      XF86AudioNext        allow-when-locked=true { spawn "playerctl" "--player=Deezer" "next"; }
+      XF86AudioPrev        allow-when-locked=true { spawn "playerctl" "--player=Deezer" "previous"; }
+
+      // === Brightness (SwayOSD) ===
+      // Standard Keys
+      XF86MonBrightnessUp   { spawn "swayosd-client" "--brightness" "raise"; }
+      XF86MonBrightnessDown { spawn "swayosd-client" "--brightness" "lower"; }
+      // Desktop Fallback
+      Mod+F1 { spawn "swayosd-client" "--brightness" "lower"; }
+      Mod+F2 { spawn "swayosd-client" "--brightness" "raise"; }
 
       ${hostKeybinds}
   }

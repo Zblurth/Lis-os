@@ -39,6 +39,7 @@
     slurp # Area selection
     swappy # Edit screenshots
     wl-clipboard # Clipboard
+    cliphist # Clipboard Manager
 
     # ========================
     # RICING
