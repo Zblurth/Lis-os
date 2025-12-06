@@ -34,7 +34,7 @@
   defaultShell = "zsh";
 
   # Theming
-  stylixImage = ../wallpapers/Valley.jpg;
+  stylixImage = ../modules/home/theme/stylix/wallpaper.jpg;
 
   # Startup Applications
   startupApps = [ ];

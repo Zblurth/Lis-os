@@ -21,14 +21,27 @@ let
     if builtins.pathExists hostKeybindsPath then import hostKeybindsPath { inherit host; } else "";
 
   keybindsModule = import ./keybinds.nix {
-    inherit host terminal browser barChoice hostKeybinds config;
+    inherit
+      host
+      terminal
+      browser
+      barChoice
+      hostKeybinds
+      config
+      ;
   };
   windowrulesModule = import ./windowrules.nix { inherit host; };
   # Pass config to layout module so it can read settings if needed
   layoutModule = import ./layout.nix { inherit config; };
   workspacesModule = import ./workspaces.nix { };
   startupModule = import ./startup.nix {
-    inherit host stylixImage startupApps barChoice pkgs;
+    inherit
+      host
+      stylixImage
+      startupApps
+      barChoice
+      pkgs
+      ;
   };
 
   hostOutputsPath = ./hosts/${host}/outputs.nix;
@@ -105,20 +118,20 @@ in
       Before = [ "graphical-session.target" ];
     };
     Service = {
-          Type = "oneshot";
-          ExecStart = pkgs.writeShellScript "assemble-niri-config" ''
-            BASE="$HOME/.config/niri/config-base.kdl"
-            COLORS="$HOME/.config/niri/colors.kdl"
-            FINAL="$HOME/.config/niri/config.kdl"
-            if [ ! -f "$COLORS" ]; then
-              mkdir -p "$(dirname "$COLORS")"
-              echo "// Fallback Colors" > "$COLORS"
-              # FIXED: Removed semicolon inside the brace
-              echo "window-rule { border { active-color \"#ff0000\" } }" >> "$COLORS"
-            fi
-            cat "$BASE" "$COLORS" > "$FINAL"
-          '';
-        };
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "assemble-niri-config" ''
+        BASE="$HOME/.config/niri/config-base.kdl"
+        COLORS="$HOME/.config/niri/colors.kdl"
+        FINAL="$HOME/.config/niri/config.kdl"
+        if [ ! -f "$COLORS" ]; then
+          mkdir -p "$(dirname "$COLORS")"
+          echo "// Fallback Colors" > "$COLORS"
+          # FIXED: Removed semicolon inside the brace
+          echo "window-rule { border { active-color \"#ff0000\" } }" >> "$COLORS"
+        fi
+        cat "$BASE" "$COLORS" > "$FINAL"
+      '';
+    };
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
@@ -164,13 +177,5 @@ in
       Restart = "on-failure";
     };
     Install.WantedBy = [ "graphical-session.target" ];
-  };
-
-  # Fix wallpaper path (4 levels up)
-  home.file = {
-    "Pictures/Wallpapers" = {
-      source = ../../../../wallpapers;
-      recursive = true;
-    };
   };
 }

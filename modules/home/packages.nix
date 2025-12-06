@@ -4,37 +4,41 @@
     # ========================
     # ESSENTIAL APPS
     # ========================
-    vivaldi # Browser
-    vesktop # Discord
     deezer-enhanced # Music
+    vesktop # Discord
+    vivaldi # Browser
     zed-editor # Code
 
     # ========================
     # UTILITIES
     # ========================
-    nvd # Nix diffs
     errands # Todo app
     gemini-cli # Gemini protocol
     github-cli # Manage Github
+    gnused # Stream editor (Added)
     hyfetch # Gay flex
     kitty
+    nvd # Nix diffs
+    rofi # Application launcher (Added)
     starship # Custom prompt shell
 
     # ========================
     # FILE MANAGEMENT & MEDIA
     # ========================
-    xfce.thunar # File manager
-    xfce.thunar-archive-plugin # Right-click extract
-    xfce.thunar-volman # Auto-mount USB
-    xfce.thunar-media-tags-plugin # Audio tags
     ffmpegthumbnailer # Video thumbnails
     file-roller # Archive GUI
+    xfce.thunar # File manager
+    xfce.thunar-archive-plugin # Right-click extract
+    xfce.thunar-media-tags-plugin # Audio tags
+    xfce.thunar-volman # Auto-mount USB
 
-    ffmpegthumbnailer # Thumbnails
+    # ========================
+    # CLIPBOARD & SCREENSHOTS
+    # ========================
     grim # Screenshots
     slurp # Area selection
-    wl-clipboard # Clipboard
     swappy # Edit screenshots
+    wl-clipboard # Clipboard
 
     # ========================
     # RICING
@@ -46,18 +50,20 @@
     # ========================
     # SYSTEM TOOLS
     # ========================
-    networkmanagerapplet
-    ddcutil # Monitor control
-    playerctl # Media keys
-    swayosd # Volume/brightness OSD
     brightnessctl
+    ddcutil # Monitor control
+    eza # Better ls
+    fd # Better find
+    networkmanagerapplet
+    playerctl # Media keys
+    ripgrep # Better grep
+    swayosd # Volume/brightness OSD
 
-    # ============================================
-    # 2. NIX DEVELOPMENT & TOOLS
-    # ============================================
+    # ========================
+    # NIX DEVELOPMENT & TOOLS
+    # ========================
+    nix-output-monitor # Better nix output
     nixd # Nix Language Server
     nixfmt-rfc-style # Formatter
-    nix-output-monitor # Better nix output
-    nvd # Diff between generations
   ];
 }

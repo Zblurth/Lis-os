@@ -13,4 +13,11 @@
       gtk-application-prefer-dark-theme = 1;
     };
   };
+
+  # Force "Dark Mode" for libadwaita/gnome apps
+  dconf.settings = {
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+    };
+  };
 }

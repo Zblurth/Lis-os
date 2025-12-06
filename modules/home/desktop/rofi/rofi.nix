@@ -1,7 +1,5 @@
-{ pkgs, ... }:
+{ ... }:
 {
-  home.packages = [ pkgs.rofi ];
-
-  # Link the main launcher config
+  # Package is now in modules/home/packages.nix
   xdg.configFile."rofi/config.rasi".source = ./config/launcher.rasi;
 }

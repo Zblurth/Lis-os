@@ -7,7 +7,7 @@
       draw-border-with-background false
   }
 
-  // --- Rofi Specific Rule (Shadows & Floating) ---
+  // --- Rofi ---
   window-rule {
       match app-id="^rofi$"
       open-floating true
@@ -21,9 +21,17 @@
 
   // --- ERRANDS (Floating & Centered) ---
   window-rule {
-      match app-id=r#"^errands$|^io\.github\\.mrvladus\\.List$"#
+      match app-id="io.github.mrvladus.List"
       open-floating true
       default-column-width { proportion 0.4; }
+      default-window-height { proportion 0.6; }
+  }
+
+  // --- Floating Thunar ---
+  window-rule {
+      match app-id="thunar" title="thunar-float"
+      open-floating true
+      default-column-width { proportion 0.6; }
       default-window-height { proportion 0.6; }
   }
 
@@ -36,7 +44,7 @@
 
   // --- ZED EDITOR ---
   window-rule {
-      match app-id=r#"^dev\\.zed\\.Zed$"#
+      match app-id=r#"^dev\.zed\.Zed$"#
       default-column-width { proportion 0.33333; }
   }
 

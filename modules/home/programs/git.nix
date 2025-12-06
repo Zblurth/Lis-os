@@ -1,6 +1,8 @@
-{host, ...}: let
-  inherit (import ../../hosts/variables.nix) gitUsername gitEmail;
-in {
+{ ... }:
+let
+  inherit (import ../../../hosts/variables.nix) gitUsername gitEmail;
+in
+{
   programs.git = {
     enable = true;
     # Updated to use programs.git.settings in nixpkgs-unstable

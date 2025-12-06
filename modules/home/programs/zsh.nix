@@ -2,7 +2,7 @@
   ...
 }:
 let
-  variables = import ../../hosts/variables.nix;
+  variables = import ../../../hosts/variables.nix;
   defaultShell = variables.defaultShell or "zsh";
 in
 {

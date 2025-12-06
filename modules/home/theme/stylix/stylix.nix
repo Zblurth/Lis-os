@@ -1,19 +1,15 @@
-{
-  pkgs,
-  lib,
-  ...
-}:
+{ pkgs, ... }:
 let
-  variables = import ../../hosts/variables.nix;
-  inherit (variables) stylixImage stylixEnable;
+  # This points to the file sitting right next to this .nix file
+  wallpaperPath = ./wallpaper.jpg;
 in
-lib.mkIf stylixEnable {
+{
   stylix = {
     enable = true;
-    image = stylixImage;
+    image = wallpaperPath;
     autoEnable = false;
 
-    # Only disable what we are actively managing
+    # We disable these targets because we handle them manually
     targets.gtk.enable = false;
     targets.kitty.enable = false;
 
@@ -24,6 +20,7 @@ lib.mkIf stylixEnable {
       name = "Bibata-Modern-Ice";
       size = 24;
     };
+
     fonts = {
       monospace = {
         package = pkgs.nerd-fonts.jetbrains-mono;

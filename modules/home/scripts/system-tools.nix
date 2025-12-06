@@ -47,7 +47,6 @@ in
       cd ${configDir} || exit
 
       echo -e "${blue}🧹 Cleaning old backups...${reset}"
-      # SAFE TO REMOVE: These are just collision backups from Home Manager
       find "$HOME/.config" -name "*.backup" -delete
 
       echo -e "${blue}📦 Staging changes...${reset}"
@@ -59,23 +58,25 @@ in
       echo -e "${green}✅ Test Environment Active!${reset}"
       echo -e "${blue}ℹ️  NOTE: Changes are live but NOT permanent.${reset}"
       echo -e "${blue}ℹ️  Reboot your PC to discard these changes.${reset}"
-      echo -e "${blue}ℹ️  If happy, run 'fr' to commit them.${reset}"
-
-      if command -v niri &> /dev/null; then
-        echo -e "${blue}🔍 Validating Niri...${reset}"
-        niri validate || echo -e "${red}⚠️ Niri config issues detected${reset}"
-      fi
     '')
 
-    # --- Utils ---
+    # --- CLEAN OS (Updated) ---
     (pkgs.writeShellScriptBin "clean-os" ''
-      echo "🧹 System Garbage Collection"
-      read -p "Keep how many generations? " keep_num
+      echo -e "${blue}🧹 System Garbage Collection${reset}"
+      read -p "Keep how many recent generations? (Recommended: 3-5): " keep_num
       if [[ ! "$keep_num" =~ ^[0-9]+$ ]]; then
-          echo "❌ Invalid number."
+          echo -e "${red}❌ Invalid number.${reset}"
           exit 1
       fi
+
+      echo -e "${blue}🗑️  Deleting old generations...${reset}"
       nh clean all --keep "$keep_num"
+
+      echo -e "${blue}🗜️  Optimizing Store (Deduplicating files)...${reset}"
+      echo "This might take a while..."
+      nix-store --optimise
+
+      echo -e "${green}✨ System Cleaned & Optimized!${reset}"
     '')
 
     (pkgs.writeShellScriptBin "hist-os" ''
@@ -83,10 +84,10 @@ in
     '')
 
     (pkgs.writeShellScriptBin "debug-os" ''
-         cd ${configDir} || exit
-         git add .
-         echo "🧪 Dry Run..."
-         nixos-rebuild dry-build --flake . --show-trace --log-format internal-json -v |& ${pkgs.nix-output-monitor}/bin/nom --json
-       '')
+      cd ${configDir} || exit
+      git add .
+      echo "🧪 Dry Run..."
+      nixos-rebuild dry-build --flake . --show-trace --log-format internal-json -v |& ${pkgs.nix-output-monitor}/bin/nom --json
+    '')
   ];
 }
