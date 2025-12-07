@@ -10,7 +10,12 @@
     "emitDecoratorMetadata": true,
     "jsx": "react",
     "jsxFactory": "Astal.Gtk.Gtk",
-    "jsxFragmentFactory": "Astal.Gtk.Fragment"
+    "jsxFragmentFactory": "Astal.Gtk.Fragment",
+    "baseUrl": ".",
+    "paths": {
+      "astal/*": ["./_astal/lib/*"],
+      "astal": ["./_astal/lib/index"]
+    }
   },
   "include": ["./**/*"]
 }

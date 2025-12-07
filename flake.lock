@@ -183,6 +183,22 @@
         "type": "github"
       }
     },
+    "gnim": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1764269595,
+        "narHash": "sha256-yslzUPALGrK9b59UBcjPZe6QtKwPwa7/x5dowy8Igv4=",
+        "owner": "aylur",
+        "repo": "gnim",
+        "rev": "c821e8eb884c370c6c15f545ce37384be35e9ce4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "aylur",
+        "repo": "gnim",
+        "type": "github"
+      }
+    },
     "gnome-shell": {
       "flake": false,
       "locked": {
@@ -405,6 +421,7 @@
       "inputs": {
         "ags": "ags",
         "astal": "astal_2",
+        "gnim": "gnim",
         "home-manager": "home-manager",
         "niri-flake": "niri-flake",
         "nixpkgs": "nixpkgs_2",

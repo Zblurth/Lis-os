@@ -1,6 +1,7 @@
-import { App, Astal, Gtk, Gdk } from "astal/gtk3";
+import App from "astal/gtk3/app";
+import { Astal, Gtk, Gdk } from "astal/gtk3";
 import { bind } from "astal";
-import Niri from "../service/niri"; // <--- Import our clean service
+import Niri from "../service/niri";
 
 function Workspaces() {
   const niri = Niri.default;

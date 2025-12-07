@@ -18,14 +18,22 @@
     noctalia.url = "github:noctalia-dev/noctalia-shell";
     niri-flake.url = "github:sodiboo/niri-flake";
 
-    # THE COMPLETE STACK
+    # Backend
     astal = {
       url = "github:aylur/astal";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Frontend Source
     ags = {
-      url = "github:aylur/ags";
+      url = "github:aylur/ags/v2"; # Add /v2 here
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # The Missing Dependency (Raw Source)
+    gnim = {
+      url = "github:aylur/gnim";
+      flake = false;
     };
   };
 
@@ -37,10 +45,12 @@
       niri-flake,
       astal,
       ags,
+      gnim,
       ...
     }@inputs:
     let
       system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
 
       mkHost =
         {
@@ -56,9 +66,12 @@
             inherit profile username;
           };
           modules = [
-            ({ ... }: {
-               nixpkgs.overlays = [ niri-flake.overlays.niri ];
-            })
+            (
+              { ... }:
+              {
+                nixpkgs.overlays = [ niri-flake.overlays.niri ];
+              }
+            )
             ./hosts/default.nix
           ];
         };
@@ -70,6 +83,28 @@
           profile = "amd";
           username = "lune";
         };
+      };
+
+      # KEEP existing homeConfigurations
+      homeConfigurations."lune" = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = [
+          ./home/lune.nix
+          {
+            nixpkgs.overlays = [ niri-flake.overlays.niri ];
+          }
+        ];
+        extraSpecialArgs = { inherit inputs; };
+      };
+
+      # ADD THIS RIGHT HERE - New packages section
+      packages.${system} = {
+        lis-bar = pkgs.callPackage ./modules/home/desktop/ags/lis-bar.nix {
+          astal = astal.packages.${system};
+          ags-src = ags;
+          gnim-src = gnim;
+        };
+        default = self.packages.${system}.lis-bar;
       };
     };
 }

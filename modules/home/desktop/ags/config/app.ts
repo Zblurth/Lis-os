@@ -1,12 +1,11 @@
-import { App } from "astal/gtk3"
-import style from "./style.css"
-import Bar from "./widget/Bar"
+// In app.ts
+import { App } from "ags/gtk3";
 
-App.start({
-    css: style,
-    main() {
-        // App.get_monitors() depends on GDK.
-        // For Niri, usually one bar per monitor.
-        App.get_monitors().map(Bar)
-    },
-})
+// In Bar.tsx
+import App from "ags/gtk3/app";
+import { Astal, Gtk, Gdk } from "ags/gtk3";
+import { bind } from "ags";
+
+// In niri.ts
+import { Service, GObject, signal, property, register } from "ags/gobject";
+import { GLib, Gio } from "ags";
