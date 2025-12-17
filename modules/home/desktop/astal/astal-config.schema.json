@@ -1,0 +1,200 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Astal Configuration",
+    "type": "object",
+    "required": [
+        "scaling",
+        "layout",
+        "appearance",
+        "animation"
+    ],
+    "properties": {
+        "scaling": {
+            "type": "object",
+            "required": [
+                "unitRatio",
+                "radiusRatio",
+                "fontRatio",
+                "minFontSize"
+            ],
+            "properties": {
+                "unitRatio": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 0.2
+                },
+                "radiusRatio": {
+                    "type": "number",
+                    "minimum": 0.5
+                },
+                "fontRatio": {
+                    "type": "number",
+                    "minimum": 0.1
+                },
+                "minFontSize": {
+                    "type": "integer",
+                    "minimum": 8
+                }
+            }
+        },
+        "layout": {
+            "type": "object",
+            "required": [
+                "barHeight",
+                "launcherWidth",
+                "launcherHeight",
+                "clipboardWidth",
+                "clipboardHeight"
+            ],
+            "properties": {
+                "barHeight": {
+                    "type": "integer",
+                    "minimum": 20
+                },
+                "screenWidth": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "launcherWidth": {
+                    "type": "integer",
+                    "minimum": 300
+                },
+                "launcherHeight": {
+                    "type": "integer",
+                    "minimum": 300
+                },
+                "clipboardWidth": {
+                    "type": "number",
+                    "minimum": 0.2,
+                    "maximum": 1.0
+                },
+                "clipboardHeight": {
+                    "type": "integer",
+                    "minimum": 50
+                },
+                "bar": {
+                    "type": "object",
+                    "properties": {
+                        "workspaceScale": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "launcher": {
+                    "type": "object",
+                    "properties": {
+                        "scale": {
+                            "type": "number"
+                        },
+                        "sidebarWidth": {
+                            "type": "integer"
+                        },
+                        "gridColumns": {
+                            "type": "integer"
+                        },
+                        "gridRows": {
+                            "type": "integer"
+                        },
+                        "maxAppNameLength": {
+                            "type": "integer"
+                        },
+                        "searchBarHeightRatio": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "clipboard": {
+                    "type": "object",
+                    "properties": {
+                        "cardWidth": {
+                            "type": "integer"
+                        },
+                        "cardHeight": {
+                            "type": "integer"
+                        },
+                        "imagePreviewSize": {
+                            "type": "number"
+                        },
+                        "cardSpacing": {
+                            "type": "integer"
+                        },
+                        "maxVisibleCards": {
+                            "type": "integer"
+                        },
+                        "previewLines": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "appearance": {
+            "type": "object",
+            "properties": {
+                "monochromeIcons": {
+                    "type": "boolean"
+                },
+                "fuzzySearch": {
+                    "type": "boolean"
+                },
+                "maxHistoryItems": {
+                    "type": "integer"
+                },
+                "colors": {
+                    "type": "object",
+                    "properties": {
+                        "primary": {
+                            "type": "string"
+                        },
+                        "surface": {
+                            "type": "string"
+                        },
+                        "surfaceDarker": {
+                            "type": "string"
+                        },
+                        "text": {
+                            "type": "string"
+                        },
+                        "border": {
+                            "type": "string"
+                        },
+                        "accent": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "glass": {
+                    "type": "object",
+                    "properties": {
+                        "blur": {
+                            "type": "integer"
+                        },
+                        "surfaceOpacity": {
+                            "type": "number"
+                        },
+                        "borderOpacity": {
+                            "type": "number"
+                        },
+                        "saturation": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        },
+        "animation": {
+            "type": "object",
+            "properties": {
+                "uiDuration": {
+                    "type": "integer"
+                },
+                "windowDuration": {
+                    "type": "integer"
+                },
+                "curve": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

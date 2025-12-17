@@ -2,7 +2,10 @@
 result
 result-*
 
-# AI Context Dumps (Don't commit these!)
+# Astal build artifacts
+modules/home/desktop/astal/bundle.js
+modules/home/desktop/astal/node_modules/
+# AI Context Dumps
 *.xml
 repomix-output.txt
 
@@ -10,9 +13,15 @@ repomix-output.txt
 .zed/
 *.swp
 
-# Optional: History files if you don't want them public
+# History
 .bash_history
 .zsh_history
 
-#vm
+# VM
 *.qcow2
+
+# 🛑 IGNORE DUMPS (Saves Tokens!)
+Lis-os-*.txt
+
+# 🛑 SECRETS (Files containing API Keys)
+modules/home/code/zed.nix

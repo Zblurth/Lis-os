@@ -1,32 +1,41 @@
-{
-  lib,
-  ...
-}:
+{ lib, ... }:
 let
   variables = import ../../hosts/variables.nix;
-
   barChoice = variables.barChoice or "noctalia";
   defaultShell = variables.defaultShell or "zsh";
 in
 {
   imports = [
     ./appimage.nix
+    ./desktop
     ./environment.nix
-    ./fzf.nix
-    ./git.nix
-    ./gtk.nix
-    ./kitty.nix
-    ./lazygit.nix
-    ./niri
+
+    # The New Programs Folder
+    ./programs/fzf.nix
+    ./programs/git.nix
+    ./programs/kitty.nix
+    ./programs/lazygit.nix
+    ./programs/starship.nix
+    ./programs/thunar.nix
+    ./programs/vivaldi-flags.nix
+    ./programs/wezterm.nix
+    ./programs/zed.nix
+    ./programs/zoxide.nix
+    ./programs/zsh.nix
+    ./programs/antigravity.nix
+    ./programs/hyfetch.nix
+    ./programs/zellij.nix
+
+    # Theme Logic
+    ./theme/default.nix
+    ./theme/gtk.nix
+    ./theme/qt.nix
+    ./theme/stylix/stylix.nix
+
+    # System
     ./packages.nix
-    ./qt.nix
     ./scripts
-    ./starship.nix
-    ./stylix.nix
-    ./thunar.nix
-    ./zed.nix
-    ./zoxide.nix
   ]
-  ++ lib.optionals (defaultShell == "zsh") [ ./zsh.nix ]
+  ++ lib.optionals (defaultShell == "zsh") [ ./programs/zsh.nix ]
   ++ lib.optionals (barChoice == "noctalia") [ ./noctalia-shell ];
 }

@@ -1,0 +1,7 @@
+@define-color theme_bg_color {bg};
+@define-color theme_fg_color {fg};
+@define-color theme_selected_bg_color {ui_prim};
+@define-color theme_selected_fg_color {bg};
+window { background: {bg}; color: {fg}; }
+view { background: {ui_sec}; color: {fg}; }
+headerbar { background: {bg}; }

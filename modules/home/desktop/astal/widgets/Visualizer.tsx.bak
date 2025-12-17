@@ -1,0 +1,41 @@
+import { bind } from "astal";
+import { Gtk } from "astal/gtk3";
+import Cava from "../service/cava";
+import LayoutService from "../src/LayoutService";
+
+export default function Visualizer() {
+  const cava = Cava.get_default();
+  const layout = LayoutService.get_default();
+
+  return (
+    <box
+      className="Visualizer"
+      spacing={layout.U.as(u => Math.floor(u * 0.25))}
+      valign={Gtk.Align.END}
+      heightRequest={layout.barHeight.as(h => Math.floor(h * 0.6))}
+    >
+      {bind(cava, "values").as((values) => {
+        if (values.length === 0) return <box />;
+
+        return values.map((val) => {
+          // Dynamic height based on bar height
+          const maxHeight = layout.barHeight.get() * 0.6;
+          const h = Math.max(layout.radiusRatio.get(), (val / 100) * maxHeight);
+          return (
+            <box
+              className="VisBar"
+              valign={Gtk.Align.END}
+              css={`
+                  min-height: ${h}px;
+                 min-width: ${Math.max(1, Math.floor(layout.barHeight.get() * 0.06))}px;
+                 border-radius: ${layout.radiusRatio.get()}px;
+                 opacity: 0.6;
+                 /* Background color is handled by bar.css (.VisBar) */
+              `}
+            />
+          );
+        });
+      })}
+    </box>
+  );
+}

@@ -27,4 +27,7 @@
 
     FONTCONFIG_FILE = "/etc/fonts/fonts.conf";
   };
+
+  # SwayOSD Service (Fixes brightness keys and OSD)
+  services.swayosd.enable = true;
 }

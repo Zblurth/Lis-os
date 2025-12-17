@@ -1,0 +1,10 @@
+* {
+    background:     {bg};
+    background-alt: {ui_sec};
+    foreground:     {fg};
+    foreground-muted: {fg_muted}; /* Fixed missing variable */
+    selected:       {ui_prim};
+    text-selected:  {bg};
+    active:         {syn_key};
+    urgent:         {sem_red};
+}

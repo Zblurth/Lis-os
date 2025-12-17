@@ -1,19 +1,14 @@
 { pkgs, ... }:
-
 {
   boot = {
-    # Use LTS kernel for stability
-    kernelPackages = pkgs.linuxPackages;
+    # UPGRADE: Use the Zen Kernel (Optimized for Desktop/Gaming)
+    kernelPackages = pkgs.linuxPackages_zen;
 
-    # --- CLEANUP: Removed initrd modules ---
-    # We let hosts/nixos/hardware.nix handle "usbhid" and "xhci".
-    # Defining them here creates redundancy and conflicts.
+    # FIX: Disable USB autosuspend (Fixes dongle disconnects at boot)
+    kernelParams = [ "usbcore.autosuspend=-1" ];
 
-    # Bootloader
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
-
-    # Plymouth (Boot splash)
     plymouth.enable = true;
   };
 }

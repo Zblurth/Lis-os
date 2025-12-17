@@ -1,0 +1,63 @@
+{
+  "active_mood": "adaptive",
+  "moods": {
+    "adaptive": {
+      "description": "Mathematical Harmony (Context-aware warmth, faithful hue)",
+      "fallback_anchor": "#7E9CD8",
+      "background": {
+        "algo": "adaptive_shadow",
+        "shadow_root": "adaptive",
+        "mix_strength": 0.30,
+        "target_L": 0.26
+      },
+      "text": {
+        "algo": "harmonized",
+        "drift": 0.10,
+        "warmth_bias": true
+      },
+      "hero": {
+        "algo": "delta_e_loop",
+        "target_delta": 45,
+        "hue_fence": 25
+      }
+    },
+    "atmospheric": {
+      "description": "Atmospheric Contrast (Analogous rotation, temp inversion)",
+      "fallback_anchor": "#BD93F9",
+      "background": {
+        "algo": "adaptive_shadow",
+        "shadow_root": "#8b7d6b",
+        "mix_strength": 0.25,
+        "target_L": 0.26
+      },
+      "text": {
+        "algo": "temp_inversion",
+        "shift": 0.02
+      },
+      "hero": {
+        "algo": "log_boost_rotate",
+        "rotation": -15
+      }
+    },
+    "pastel": {
+      "description": "Dark Pastel (Soft, muted colors on dark background)",
+      "fallback_anchor": "#FFB8C6",
+      "background": {
+        "algo": "adaptive_shadow",
+        "shadow_root": "#a0826d",
+        "mix_strength": 0.20,
+        "target_L": 0.22
+      },
+      "text": {
+        "algo": "harmonized",
+        "drift": 0.03,
+        "warmth_bias": false
+      },
+      "hero": {
+        "algo": "delta_e_loop",
+        "target_delta": 35,
+        "hue_fence": 10
+      }
+    }
+  }
+}

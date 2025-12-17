@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "ES2022",
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM"],
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "astal/gtk3",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": [".", "src/**/*"]
+}

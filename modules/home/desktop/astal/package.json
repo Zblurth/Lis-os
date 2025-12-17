@@ -1,0 +1,26 @@
+{
+    "name": "lis-astal-shell",
+    "version": "5.0.0",
+    "description": "Lis-OS Astal Typescript Shell",
+    "main": "bundle.js",
+    "scripts": {
+        "build": "node scripts/gen-registry.js && ags bundle app.tsx bundle.js",
+        "gen": "node scripts/gen-registry.js",
+        "watch": "ags run app.tsx"
+    },
+    "keywords": [
+        "astal",
+        "nixos",
+        "gjs"
+    ],
+    "author": "Aether",
+    "license": "MIT",
+    "dependencies": {
+        "zod": "^3.22.4",
+        "smol-toml": "^1.1.3"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "@types/node": "^20.0.0"
+    }
+}

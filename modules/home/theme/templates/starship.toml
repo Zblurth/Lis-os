@@ -1,0 +1,22 @@
+add_newline = false
+[directory]
+style = "bold {syn_key}"
+format = "[$path]($style)[$read_only]($read_only_style) "
+[character]
+success_symbol = "[❯](bold {sem_green})"
+error_symbol = "[❯](bold {sem_red})"
+vimcmd_symbol = "[❮]({sem_blue})"
+[nix_shell]
+format = "[$symbol]($style) "
+symbol = "🐚"
+style = "{ui_prim}"
+[git_branch]
+symbol = " "
+format = "[]({ui_sec})on [$symbol$branch]($style)[]({ui_sec}) "
+style = "fg:{syn_fun} bg:{ui_sec}"
+[git_status]
+style = "{sem_yellow}"
+stashed = "≡"
+[git_state]
+style = "{fg_dim}"
+format = "([$state( $progress_current/$progress_total)]($style)) "

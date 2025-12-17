@@ -1,0 +1,15 @@
+themes {
+    default {
+        fg "{fg}"
+        bg "{bg}"
+        black "{surface}"
+        red "{sem_red}"
+        green "{sem_green}"
+        yellow "{sem_yellow}"
+        blue "{sem_blue}"
+        magenta "{syn_key}"
+        cyan "{syn_str}"
+        white "{fg_dim}"
+        orange "{ui_sec}"
+    }
+}

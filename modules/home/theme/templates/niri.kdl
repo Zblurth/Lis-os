@@ -1,0 +1,7 @@
+window-rule {
+    border {
+        active-color "{ui_prim}"
+        inactive-color "{ui_sec}"
+        width 2
+    }
+}

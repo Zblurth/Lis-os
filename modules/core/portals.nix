@@ -13,14 +13,14 @@
     config = {
       # Specific rules for Niri session
       niri = {
-        default = [ "gtk" ]; # Use GTK for file pickers (fast)
-        "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ]; # Discord Streaming
+        default = [ "gtk" ]; # Use GTK for FileChooser/etc (Faster/Reliable)
+        "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ]; # Discord/Vesktop streaming
         "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
         "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ]; # Passwords
       };
       # Fallback rules
       common = {
-        default = [ "gtk" ];
+        default = [ "gtk" ]; # Use GTK fallback
         "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
         "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];

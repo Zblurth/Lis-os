@@ -21,7 +21,7 @@
 
   # Default Applications
   browser = "vivaldi";
-  terminal = "kitty";
+  terminal = "wezterm";
   keyboardLayout = "us";
   consoleKeyMap = "us";
 
@@ -34,7 +34,7 @@
   defaultShell = "zsh";
 
   # Theming
-  stylixImage = ../wallpapers/Valley.jpg;
+  stylixImage = ../modules/home/theme/stylix/wallpaper.jpg;
 
   # Startup Applications
   startupApps = [ ];

@@ -1,0 +1,166 @@
+/* Root Window Style */
+window#bar {
+  background-color: @bar_bg;
+  min-height: 34px;
+  /* GTK Minimum Height Enforcement */
+}
+
+/* Reset Buttons */
+.BarContent button {
+  min-height: 0px;
+  min-width: 0px;
+  padding: 0px;
+  margin: 0px;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.BarContent {
+  /* GTK3: var() in shorthand causes "Junk at end" error */
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.BarContent .Left,
+.BarContent .Right {
+  /* NOTE: GTK3 doesn't support border-spacing. Box spacing must be set via widget `spacing` prop */
+}
+
+/* WidgetPill, MediaPill, DashboardIcon styles moved to CssInjectionService */
+
+.TrayToggle {
+  padding: 0px 4px;
+  /* Fallback for calc(var(--u) * 0.4) until fully CSS'd */
+}
+
+/* Media Widget Internals */
+.MediaContent {
+  padding: 0px 6px;
+}
+
+.Title {
+  font-weight: bold;
+}
+
+.Separator {
+  margin: 0 4px;
+}
+
+.Artist {
+  opacity: 0.8;
+}
+
+.DateTimePill {
+  /* Specific override if needed, otherwise inherits WidgetPill */
+}
+
+/* --- END REMEDIATION --- */
+
+.WidgetPill:hover,
+.MediaPill:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* --- TEXT COLORS --- */
+.WidgetPill label {
+  color: @fg;
+}
+
+/* Force accent color for boxes with .accent class */
+.WidgetPill.accent label,
+.WidgetPill .accent {
+  color: @ui_prim;
+}
+
+/* --- MEDIA --- */
+.MediaPill .Cover {
+  border-radius: 50%;
+  background-color: @surfaceDarker;
+  min-width: 12px;
+  min-height: 12px;
+}
+
+/* --- ICONS --- */
+.ThemedIcon {
+  color: @ui_prim;
+}
+
+.desaturate {
+  -gtk-icon-effect: dim;
+  opacity: 0.7;
+}
+
+/* --- WORKSPACES --- */
+.Workspaces .workspace {
+  background-color: @bg;
+  color: @fg;
+  padding: 0px 6px;
+  min-height: 0px;
+
+  /* THE FIX for the shadow artifact: Kill all GTK button styling */
+  border: none;
+  background-image: none;
+  box-shadow: none;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.Workspaces .workspace label {
+  margin: 0;
+  padding: 0;
+}
+
+.Workspaces .workspace:hover {
+  background-color: @ui_sec;
+}
+
+/* ACTIVE WORKSPACE */
+.Workspaces .workspace.active {
+  background-color: @ui_prim;
+  color: @bg;
+}
+
+.Workspaces .workspace.active .ThemedIcon {
+  color: @bg;
+}
+
+.WorkspaceIcon {
+  /* Dynamic pixelSize via TS */
+}
+
+/* --- FONTS & WIDGET-SPECIFIC COLORS --- */
+.DateTime,
+.Weather,
+.AudioWidget,
+.ResourceUsage,
+.Tray,
+.WindowTitle {
+  font-weight: 600;
+  color: @fg;
+}
+
+/* DateTime Color Fix */
+.DateTime {
+  color: @ui_prim;
+}
+
+/* Resource Colors - Force Primary Color on Icons */
+.ResourceUsage .Cpu icon,
+.ResourceUsage .Temp icon,
+.ResourceUsage .Mem icon {
+  color: @ui_prim;
+}
+
+/* Resource Colors - Urgent State */
+.ResourceUsage .urgent {
+  color: @syn_acc;
+}
+
+.VisBar {
+  min-width: 2px;
+  background-color: @syn_acc;
+  border-radius: 2px;
+}

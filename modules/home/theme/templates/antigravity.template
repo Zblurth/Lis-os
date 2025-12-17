@@ -1,0 +1,89 @@
+{
+  "name": "LisTheme",
+  "type": "dark",
+  "colors": {
+    "activityBar.background": "{ui_sec}",
+    "activityBar.foreground": "{fg}",
+    "editor.background": "{bg}",
+    "editor.foreground": "{fg}",
+    "editor.lineHighlightBackground": "{ui_sec}",
+    "editorCursor.foreground": "{ui_prim}",
+    "editorIndentGuide.background": "{surface}",
+    "editorLineNumber.foreground": "{fg_dim}",
+    "sideBar.background": "{bg}",
+    "sideBar.foreground": "{fg}",
+    "statusBar.background": "{ui_sec}",
+    "statusBar.foreground": "{fg}",
+    "tab.activeBackground": "{ui_sec}",
+    "tab.activeForeground": "{fg}",
+    "tab.inactiveBackground": "{bg}",
+    "tab.inactiveForeground": "{fg_dim}",
+    "titleBar.activeBackground": "{bg}",
+    "titleBar.activeForeground": "{fg}",
+    "terminal.background": "{bg}",
+    "terminal.foreground": "{fg}",
+    "terminal.ansiBlack": "{bg}",
+    "terminal.ansiRed": "{sem_red}",
+    "terminal.ansiGreen": "{sem_green}",
+    "terminal.ansiYellow": "{sem_yellow}",
+    "terminal.ansiBlue": "{sem_blue}",
+    "terminal.ansiMagenta": "{syn_acc}",
+    "terminal.ansiCyan": "{syn_fun}",
+    "terminal.ansiWhite": "{fg}",
+    "terminal.ansiBrightBlack": "{fg_dim}",
+    "terminal.ansiBrightRed": "{sem_red}",
+    "terminal.ansiBrightGreen": "{sem_green}",
+    "terminal.ansiBrightYellow": "{sem_yellow}",
+    "terminal.ansiBrightBlue": "{sem_blue}",
+    "terminal.ansiBrightMagenta": "{syn_acc}",
+    "terminal.ansiBrightCyan": "{syn_fun}",
+    "terminal.ansiBrightWhite": "{fg}"
+  },
+  "tokenColors": [
+    {
+      "scope": "comment",
+      "settings": {
+        "foreground": "{fg_dim}",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "scope": "keyword",
+      "settings": {
+        "foreground": "{syn_key}",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": ["storage", "storage.type"],
+      "settings": {
+        "foreground": "{syn_key}"
+      }
+    },
+    {
+      "scope": ["entity.name.function", "support.function"],
+      "settings": {
+        "foreground": "{syn_fun}",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "string",
+      "settings": {
+        "foreground": "{syn_str}"
+      }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": {
+        "foreground": "{syn_acc}"
+      }
+    },
+    {
+      "scope": "variable",
+      "settings": {
+        "foreground": "{fg}"
+      }
+    }
+  ]
+}
