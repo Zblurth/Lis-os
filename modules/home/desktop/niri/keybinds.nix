@@ -13,9 +13,9 @@
       Mod+E { spawn "errands"; }
       Mod+Z { spawn "zeditor"; }
 
-      Mod+Space { spawn "launcher"; }
+      // Mod+Space { spawn "launcher"; }
       Mod+V { spawn "clipboard-manager"; }
-      Ctrl+Q { spawn "launcher" "windows"; }
+      // Ctrl+Q { spawn "launcher" "windows"; }
       Mod+Shift+W { spawn "wall-select"; }
       
       // IDE Layout (Antigravity + WezTerm on WS1)

@@ -32,7 +32,7 @@
     hyfetch # Gay flex
     jq # JSON processor
     nvd # Nix diffs
-    rofi # Application launcher (Added)
+
     starship # Custom prompt shell
     libnotify # For notify-send
 
@@ -81,7 +81,7 @@
     nixfmt-rfc-style # Formatter
     statix # Linter
     deadnix # Dead code detection
-    # mcp-nixos # MCP Server for NixOS logic # Managed in: modules/home/code/mcp.nix
-    # nodejs_22 # Runtime for MCP servers # Managed in: modules/home/code/mcp.nix
+    uv # Python package runner (provides uvx for MCP servers)
+    # mcp-nixos # MCP Server for NixOS logic # Managed in: /home/lune/.gemini/antigravity/mcp_config.json
   ];
 }

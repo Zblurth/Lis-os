@@ -7,17 +7,7 @@
       draw-border-with-background false
   }
 
-  // --- Rofi ---
-  window-rule {
-      match app-id="^rofi$"
-      open-floating true
-      shadow {
-          on
-          softness 30
-          spread 10
-          color "#00000080"
-      }
-  }
+
 
   // --- ERRANDS (Floating & Centered) ---
   window-rule {

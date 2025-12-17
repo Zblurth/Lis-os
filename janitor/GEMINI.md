@@ -68,6 +68,12 @@ Use this map to locate key system components instantly.
 *   [Technical changes]
 ```
 
+## 4.1 Mandatory Pre-Read (New Tasks)
+Before ANY new task involving Astal, Desktop, or Theming, the agent MUST read:
+1. [janitor/GEMINI.md](cci:7://file:///home/lune/Lis-os/janitor/GEMINI.md:0:0-0:0)
+2. [janitor/ASTAL_V5_BIBLE.md](cci:7://file:///home/lune/Lis-os/janitor/ASTAL_V5_BIBLE.md:0:0-0:0)
+3. Any relevant `janitor/*.md` based on the task domain.
+
 ## 📂 Documentation Index (in `janitor/`)
 *   `GEMINI.md`: **THIS FILE.** System Identity & Master Protocol.
 *   `ASTAL_DESIGN.md`: The "Bible" for widget creation. **Strict Contract.**
