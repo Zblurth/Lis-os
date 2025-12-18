@@ -21,7 +21,6 @@ in
     ./programs/wezterm.nix
     ./programs/zed.nix
     ./programs/zoxide.nix
-    ./programs/zsh.nix
     ./programs/antigravity.nix
     ./programs/hyfetch.nix
     ./programs/zellij.nix

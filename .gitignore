@@ -1,27 +1,23 @@
-# Nix build results
-result
-result-*
 
-# Astal build artifacts
-modules/home/desktop/astal/bundle.js
-modules/home/desktop/astal/node_modules/
 # AI Context Dumps
-*.xml
-repomix-output.txt
-
-# Editor temporary files
-.zed/
-*.swp
-
-# History
+# Astal build artifacts
 .bash_history
-.zsh_history
-
-# VM
-*.qcow2
-
+# Editor temporary files
+# History
 # 🛑 IGNORE DUMPS (Saves Tokens!)
 Lis-os-*.txt
-
-# 🛑 SECRETS (Files containing API Keys)
 modules/home/code/zed.nix
+modules/home/desktop/astal/bundle.js
+modules/home/desktop/astal/node_modules/
+# Nix build results
+noctalia-shell/
+*.qcow2
+repomix-output.txt
+result
+result-*
+# 🛑 SECRETS (Files containing API Keys)
+*.swp
+# VM
+*.xml
+.zed/
+.zsh_history

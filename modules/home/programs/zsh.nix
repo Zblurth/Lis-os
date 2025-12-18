@@ -104,9 +104,17 @@ in
     shellAliases = {
       c = "clear";
       man = "batman";
-      ll = "ls -l";
-      la = "ls -la";
-      z = "zeditor";
+
+      # Modern Core Utils
+      ls = "eza --icons";
+      ll = "eza -l --icons --group-directories-first";
+      la = "eza -la --icons --group-directories-first";
+      cat = "bat";
+      grep = "rg";
+      find = "fd";
+
+      # Apps
+      ze = "zeditor";
       # Quick Access
       rebuild = "sudo nixos-rebuild switch --flake ~/Lis-os";
       home = "home-manager switch --flake ~/Lis-os";

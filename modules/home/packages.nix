@@ -26,6 +26,11 @@
     # ========================
     errands # Todo app
     gemini-cli # Gemini protocol
+    eza # Better ls
+    bat # Better cat
+    fd # Better find
+    zoxide # Better cd
+    yazi # Better file manager
     # antigravity # Managed in programs/antigravity.nix
     github-cli # Manage Github
     gnused # Stream editor (Added)
