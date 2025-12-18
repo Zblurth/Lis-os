@@ -27,9 +27,9 @@
 
       // === System & Window Management ===
       Mod+S { screenshot; }
-      Mod+Backspace { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
+      Mod+Shift+Q { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
+      Mod+Ctrl+Shift+S { spawn "noctalia-shell" "ipc" "call" "settings" "toggle"; }
       Mod+Q { close-window; }
-      Mod+Shift+Q { quit; }
       Mod+L { spawn "loginctl" "lock-session"; }
 
       Mod+Minus { set-column-width "33.333%"; }
