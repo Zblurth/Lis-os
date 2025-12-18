@@ -67,4 +67,5 @@ in
   xdg.configFile."theme-engine/templates/antigravity.template".source =
     ./templates/antigravity.template;
   xdg.configFile."theme-engine/templates/zellij.kdl".source = ./templates/zellij.kdl;
+  xdg.configFile."theme-engine/templates/colors.sh".source = ./templates/colors.sh;
 }

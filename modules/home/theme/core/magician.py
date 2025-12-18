@@ -17,6 +17,7 @@ from core.extraction import extract_anchor
 from core.generator import generate_palette
 from core.renderer import render_template
 from core.icons import tint_icons
+from coloraide import Color
 
 # CONFIG
 XDG_CONFIG_HOME = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
@@ -105,7 +106,8 @@ def action_set(args):
         ("antigravity.template", Path.home() / ".antigravity" / "extensions" / "lis-theme" / "themes" / "lis-theme.json"),
         ("hyfetch.json", XDG_CONFIG_HOME / "hyfetch.json"),
         ("zellij.kdl", XDG_CONFIG_HOME / "zellij" / "themes" / "default.kdl"),
-        ("gtk.css", XDG_CONFIG_HOME / "gtk-4.0" / "gtk.css")
+        ("gtk.css", XDG_CONFIG_HOME / "gtk-4.0" / "gtk.css"),
+        ("colors.sh", XDG_CACHE_HOME / "wal" / "colors.sh")
     ]
 
     for tpl_name, dest in templates:
@@ -213,6 +215,86 @@ def action_set(args):
     for key, val in sorted(palette["colors"].items()):
         if val.startswith("#"):
             print(f"{key:<15} {format_color_cell(val)}")
+
+    # ----------------------------------------------------------------
+    # NOCTALIA INTEGRATION (Shim)
+    # ----------------------------------------------------------------
+    print(":: Generating Noctalia Shims...")
+    try:
+        c = palette["colors"]
+        
+        def on_color(hex_str):
+            """Calculate accessible text color (onPrimary, etc)."""
+            try:
+                base = Color(hex_str)
+                # Standard MD3 typically uses white or black (usually tone 10 or 90)
+                # We'll stick to simple black/white for max contrast safety
+                if base.contrast("#ffffff") >= 4.5:
+                    return "#ffffff"
+                return "#000000"
+            except:
+                return "#ffffff"
+
+        def shift(hex_str, light_delta=0):
+            """Shift lightness."""
+            try:
+                col = Color(hex_str)
+                # Oklch lightness is 0-1
+                l = col.convert("oklch").coords[0]
+                new_l = max(0, min(1, l + light_delta))
+                col.convert("oklch").coords[0] = new_l
+                return col.to_string(hex=True)
+            except:
+                return hex_str
+        
+        def derive_outline(bg_hex):
+            """Derive outline from background."""
+            return shift(bg_hex, 0.15)  # Slightly lighter/distinct from BG
+            
+        def derive_shadow(bg_hex):
+            return shift(bg_hex, -0.05) # Slightly darker
+
+        # Mapping Lis-OS Concept -> MD3 Concept
+        # ui_prim -> Primary
+        # ui_sec  -> Secondary
+        # syn_acc -> Tertiary
+        # bg      -> Surface
+        # fg      -> OnSurface
+        
+        noctalia_colors = {
+            "mPrimary": c["ui_prim"],
+            "mOnPrimary": on_color(c["ui_prim"]),
+            
+            "mSecondary": c["ui_sec"],
+            "mOnSecondary": on_color(c["ui_sec"]),
+            
+            "mTertiary": c["syn_acc"],
+            "mOnTertiary": on_color(c["syn_acc"]),
+            
+            "mError": c["sem_red"],
+            "mOnError": on_color(c["sem_red"]),
+            
+            "mSurface": c["bg"],
+            "mOnSurface": c["fg"],
+            
+            "mSurfaceVariant": shift(c["bg"], 0.05),
+            "mOnSurfaceVariant": shift(c["fg"], -0.1),
+            
+            "mOutline": derive_outline(c["bg"]),
+            "mShadow": derive_shadow(c["bg"]),
+            
+            "mHover": c["syn_acc"],     # Using accent as hover state
+            "mOnHover": on_color(c["syn_acc"])
+        }
+        
+        noc_dir = XDG_CONFIG_HOME / "noctalia"
+        noc_dir.mkdir(parents=True, exist_ok=True)
+        atomic_write(noc_dir / "colors.json", json.dumps(noctalia_colors, indent=2))
+        print(f"   -> {noc_dir / 'colors.json'}")
+        
+    except Exception as e:
+        print(f"Error generating Noctalia shim: {e}")
+
 
 def action_compare(args):
     """Compare all moods against an image."""

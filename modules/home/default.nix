@@ -35,6 +35,5 @@ in
     ./packages.nix
     ./scripts
   ]
-  ++ lib.optionals (defaultShell == "zsh") [ ./programs/zsh.nix ]
-  ++ lib.optionals (barChoice == "noctalia") [ ./noctalia-shell ];
+  ++ lib.optionals (defaultShell == "zsh") [ ./programs/zsh.nix ];
 }

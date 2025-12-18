@@ -2,7 +2,7 @@
 {
   imports = [
     ./niri
-
+    ./noctalia
     ./astal
   ];
   config = {
