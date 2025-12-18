@@ -214,7 +214,8 @@ def action_set(args):
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
     SIGNAL_FILE.touch()
-    subprocess.run(["notify-send", "-u", "low", "Theme Refreshed", f"Anchor: {anchor}"], check=False)
+    anchor_display = palette.get("colors", {}).get("anchor", "cached")
+    subprocess.run(["notify-send", "-u", "low", "Theme Refreshed", f"Anchor: {anchor_display}"], check=False)
 
     # VISUALIZER (Single Mood)
     print(f"\n=== PALETTE PREVIEW [{config_data.get('active_mood')}] ===")
