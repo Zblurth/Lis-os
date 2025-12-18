@@ -17,11 +17,10 @@ in
     testScript
     daemonScript
     magicianScript
+    precacheScript
 
-    # Binary Dependencies
-    pkgs.pastel
+    # Binary Dependencies (pastel/imagemagick removed - now native or disabled)
     pkgs.jq
-    pkgs.imagemagick
     pkgs.swww
   ];
 

@@ -10,6 +10,8 @@ import time
 import subprocess
 import shutil
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import blake3
 
 # Add current directory to path if needed (though wrapper handles it)
 # Local imports
@@ -29,6 +31,7 @@ MOODS_FILE = CONFIG_DIR / "moods.json"
 TEMPLATE_DIR = CONFIG_DIR / "templates"
 
 CACHE_DIR = XDG_CACHE_HOME / "theme-engine"
+PALETTES_DIR = CACHE_DIR / "palettes"  # Precached palettes by hash/mood
 PALETTE_FILE = CACHE_DIR / "palette.json"
 SIGNAL_FILE = CACHE_DIR / "signal"
 
@@ -78,13 +81,22 @@ def action_set(args):
     mood_config = config_data.get("moods", {}).get(active_mood_name, {})
     fallback_anchor = mood_config.get("fallback_anchor")
 
-    print(f":: Extracting Anchor from {img_path.name}...")
-    anchor = extract_anchor(str(img_path), fallback_hex=fallback_anchor)
-    print(f"   Anchor: {anchor}")
+    # ─── CACHE LOOKUP (Hot Path) ───────────────────────────────────────────
+    cached_palette = get_cached_palette(str(img_path), active_mood_name)
+    if cached_palette:
+        print(f":: Cache HIT for {img_path.name} [{active_mood_name}]")
+        palette = cached_palette
+    else:
+        # ─── COLD PATH: Extract + Generate ────────────────────────────────────
+        print(f":: Extracting Anchor from {img_path.name}...")
+        anchor = extract_anchor(str(img_path), fallback_hex=fallback_anchor)
+        print(f"   Anchor: {anchor}")
 
-    # 1. Generate Palette
-    print(f":: Generating Palette ({config_data.get('active_mood')})...")
-    palette = generate_palette(anchor, config_data)
+        print(f":: Generating Palette ({active_mood_name})...")
+        palette = generate_palette(anchor, config_data)
+        
+        # Save to cache for next time
+        save_cached_palette(str(img_path), active_mood_name, palette)
     
     # 2. Save Palette
     print(":: Saving State...")
@@ -138,9 +150,15 @@ def action_set(args):
         gtk3_dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(gtk4_src, gtk3_dest)
         
-    # 5. Icons
-    prim = palette["colors"]["ui_prim"]
-    acc = palette["colors"]["syn_acc"]
+    # 5. Icons (DISABLED for performance)
+    # ─────────────────────────────────────────────────────────────────────
+    # To re-enable icon tinting:
+    #   1. Uncomment the lines below
+    #   2. Ensure `imagemagick` is in runtimeDeps (packages.nix)
+    #   3. Run `theme-engine <wallpaper>` - icons will be regenerated
+    # ─────────────────────────────────────────────────────────────────────
+    # prim = palette["colors"]["ui_prim"]
+    # acc = palette["colors"]["syn_acc"]
     
     # 5b. Antigravity Settings
     settings_base = XDG_CONFIG_HOME / "Antigravity" / "User" / "settings-base.json"
@@ -169,8 +187,8 @@ def action_set(args):
         except Exception as e:
             print(f"Error updating Antigravity settings: {e}")
 
-    print(":: Tinting Icons...")
-    tint_icons(prim, acc)
+    # print(":: Tinting Icons...")
+    # tint_icons(prim, acc)
     
     # 6. Wallpaper
     print(":: Setting Wallpaper...")
@@ -502,7 +520,115 @@ def action_test(args):
     
     print("\n=== TEST COMPLETE ===")
 
+# ════════════════════════════════════════════════════════════════════════════
+# CACHING HELPERS
+# ════════════════════════════════════════════════════════════════════════════
+
+def get_image_hash(image_path: str) -> str:
+    """Get Blake3 hash of file contents for cache key."""
+    hasher = blake3.blake3()
+    with open(image_path, 'rb') as f:
+        # Stream in chunks for large images
+        for chunk in iter(lambda: f.read(65536), b''):
+            hasher.update(chunk)
+    return hasher.hexdigest()[:16]  # Short hash is sufficient
+
+
+def get_cached_palette(image_path: str, mood: str) -> dict | None:
+    """Try to load a cached palette for this image + mood."""
+    try:
+        img_hash = get_image_hash(image_path)
+        cache_file = PALETTES_DIR / img_hash / f"{mood}.json"
+        if cache_file.exists():
+            with open(cache_file) as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return None
+
+
+def save_cached_palette(image_path: str, mood: str, palette: dict):
+    """Save a palette to the cache."""
+    try:
+        img_hash = get_image_hash(image_path)
+        cache_dir = PALETTES_DIR / img_hash
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_file = cache_dir / f"{mood}.json"
+        atomic_write(cache_file, json.dumps(palette, indent=2))
+    except Exception as e:
+        print(f"   [!] Cache write failed: {e}")
+
+
+def action_precache(args):
+    """Pre-generate palettes for all images in a folder, for all moods."""
+    folder = Path(args.folder).resolve()
+    if not folder.is_dir():
+        print(f"Error: Not a directory: {folder}")
+        sys.exit(1)
+    
+    jobs = args.jobs or 4
+    config_data = load_config()
+    moods = list(config_data.get("moods", {}).keys())
+    
+    if not moods:
+        print("Error: No moods defined in configuration.")
+        sys.exit(1)
+    
+    # Find all images
+    extensions = {'.jpg', '.jpeg', '.png', '.webp', '.bmp', '.gif'}
+    images = [f for f in folder.iterdir() if f.suffix.lower() in extensions]
+    
+    if not images:
+        print(f"No images found in {folder}")
+        return
+    
+    print(f":: Pre-caching {len(images)} images × {len(moods)} moods = {len(images) * len(moods)} palettes")
+    print(f":: Using {jobs} parallel workers\n")
+    
+    PALETTES_DIR.mkdir(parents=True, exist_ok=True)
+    
+    def process_image(img_path: Path):
+        """Process one image for all moods."""
+        results = []
+        try:
+            # Extract anchor once per image
+            fallback = config_data.get("moods", {}).get("adaptive", {}).get("fallback_anchor")
+            anchor = extract_anchor(str(img_path), fallback_hex=fallback)
+            
+            for mood in moods:
+                cached = get_cached_palette(str(img_path), mood)
+                if cached:
+                    results.append((mood, "cached"))
+                    continue
+                
+                # Generate palette for this mood
+                temp_config = config_data.copy()
+                temp_config["active_mood"] = mood
+                palette = generate_palette(anchor, temp_config)
+                
+                # Save to cache
+                save_cached_palette(str(img_path), mood, palette)
+                results.append((mood, "generated"))
+                
+        except Exception as e:
+            results.append(("error", str(e)))
+        
+        return img_path.name, results
+    
+    # Process in parallel
+    with ThreadPoolExecutor(max_workers=jobs) as executor:
+        futures = {executor.submit(process_image, img): img for img in images}
+        
+        for future in as_completed(futures):
+            name, results = future.result()
+            status = ", ".join(f"{m}:{s}" for m, s in results)
+            print(f"   {name}: {status}")
+    
+    print(f"\n:: Precache complete. Cache at: {PALETTES_DIR}")
+
+
 def main():
+
     parser = argparse.ArgumentParser(description="Lis-OS Theme Engine")
     subparsers = parser.add_subparsers(dest="command", required=True)
     
@@ -525,6 +651,12 @@ def main():
     test_parser = subparsers.add_parser("test", help="Run stress test (Mood Matrix)")
     test_parser.add_argument("--anchor", help="Test single anchor (e.g. '#ff0000')", default=None)
     test_parser.set_defaults(func=action_test)
+    
+    # PRECACHE
+    precache_parser = subparsers.add_parser("precache", help="Pre-generate palettes for all images in a folder")
+    precache_parser.add_argument("folder", help="Path to wallpaper folder")
+    precache_parser.add_argument("--jobs", "-j", type=int, default=4, help="Parallel workers (default: 4)")
+    precache_parser.set_defaults(func=action_precache)
     
     args = parser.parse_args()
     args.func(args)

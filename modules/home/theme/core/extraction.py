@@ -1,84 +1,64 @@
 """
 Image Extraction Logic (Saliency-based)
-Uses ImageMagick + Pastel for strict parity with engine.sh.
+Uses Pillow for native image processing (no ImageMagick subprocess).
 """
-import subprocess
 import math
-import re
 from typing import List, Tuple
+from collections import Counter
+from PIL import Image, ImageEnhance
 from .color import get_lch
 
+
 def get_saliency_score(c: float, count: int) -> float:
-    """Implement the engine.sh saliency formula: C * log(count)."""
+    """Implement the saliency formula: C * log(count)."""
     if count < 1:
         count = 1
     return c * math.log(count)
 
+
 def extract_anchor(image_path: str, fallback_hex: str = None) -> str:
     """
-    Extract the best anchor color from an image using ImageMagick pipeline.
-    Replicates engine.sh logic:
-    1. Resize 100x100
-    2. Modulate 100,150,100 (Sat * 1.5)
-    3. Histogram -> Sort by count
-    4. Saliency Score = Chroma (Pastel) * log(Count)
-    5. Monochrome Rescue: If Chroma < 5, use fallback.
+    Extract the best anchor color from an image using Pillow.
+    
+    Algorithm (matches legacy engine.sh logic):
+    1. Resize to 100x100
+    2. Boost saturation 1.5x
+    3. Get pixel histogram, take top 30 by frequency
+    4. Score each: Saliency = Chroma * log(Count)
+    5. Filter out near-black (L<1) and near-white (L>98)
+    6. Monochrome Rescue: If best chroma < 5, use fallback
     """
     try:
-        # Command: magick "$IMG" -resize 100x100 -modulate 100,150,100 -depth 8 -format "%c" histogram:info: | sort -nr | head -n 30
+        # 1. Load and resize
+        img = Image.open(image_path).convert("RGB")
+        img = img.resize((100, 100), Image.Resampling.LANCZOS)
         
-        # We run the magick command. encoding 'utf-8'.
-        cmd = [
-            "magick", image_path, 
-            "-resize", "100x100", 
-            "-modulate", "100,150,100", 
-            "-depth", "8", 
-            "-format", "%c", 
-            "histogram:info:"
-        ]
+        # 2. Boost saturation (equivalent to -modulate 100,150,100)
+        enhancer = ImageEnhance.Color(img)
+        img = enhancer.enhance(1.5)
         
-        # We need to pipe to sort | head. 
-        # Python subprocess piping is cleaner if we just capture output and sort in python.
-        res = subprocess.check_output(cmd, text=True)
+        # 3. Get histogram (pixel frequency count)
+        pixels = list(img.getdata())
+        histogram = Counter(pixels)
         
-        # Output format: "    200: ( 10, 20, 30) #0A141E srgb(10,20,30)"
-        # Regex to parse count and hex.
-        # engine.sh uses `sort -nr | head -n 30`
-        
-        hist_lines = res.strip().splitlines()
-        candidates = []
-        
-        for line in hist_lines:
-            line = line.strip()
-            if not line: continue
-            # Parse "count: ... #HEX ..."
-            # Regex: (\d+):.*(#[0-9A-Fa-f]{6})
-            match = re.match(r"(\d+):.*(#[0-9A-Fa-f]{6})", line)
-            if match:
-                count = int(match.group(1))
-                hex_val = match.group(2)
-                candidates.append((count, hex_val))
-                
-        # Sort by count desc
-        candidates.sort(key=lambda x: x[0], reverse=True)
-        candidates = candidates[:30]
+        # Take top 30 by frequency
+        candidates = histogram.most_common(30)
         
         best_score = 0.0
         best_anchor = None
         best_chroma = 0.0
         raw_fallback = None
         
-        for i, (count, hex_val) in enumerate(candidates):
+        for i, ((r, g, b), count) in enumerate(candidates):
+            hex_val = f"#{r:02x}{g:02x}{b:02x}"
+            
             if i == 0:
                 raw_fallback = hex_val
-                
-            # Get LCH from Pastel
+            
+            # Get LCH values
             l, c, h = get_lch(hex_val)
             
             # Validity Check (engine.sh logic)
-            # if (l >= 1 && c > 5) ok
-            # else if (l >= 12 && l <= 98 && c >= 2) ok
-            
             is_valid = False
             if l >= 1 and c > 5:
                 is_valid = True
@@ -95,17 +75,14 @@ def extract_anchor(image_path: str, fallback_hex: str = None) -> str:
                 best_chroma = c
                 
         if not best_anchor:
-            # Fallback to raw frequency winner if no valid anchor found
+            # Fallback to raw frequency winner
             if raw_fallback:
-                # Need to check chroma of raw fallback too?
-                # engine.sh: "if [[ -z "$ANCHOR" ]]; then ANCHOR=... FINAL_CHROMA=..."
                 best_anchor = raw_fallback
                 _, best_chroma, _ = get_lch(raw_fallback)
             else:
                 return "#000000"
 
         # Monochrome Rescue
-        # engine.sh: if [[ "$IS_MONOCHROME" == "1" ]]; then ... ANCHOR="$FALLBACK_ANCHOR" ...
         if best_chroma < 5 and fallback_hex:
             print(f"   [!] Monochrome (C:{best_chroma:.1f}). Rescue -> {fallback_hex}")
             return fallback_hex

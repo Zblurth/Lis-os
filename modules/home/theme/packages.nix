@@ -26,8 +26,8 @@ let
   runtimeDeps = [
     pkgs.coreutils
     pkgs.jq
-    pkgs.pastel
-    pkgs.imagemagick
+    # pkgs.pastel  # REMOVED: Now using native coloraide
+    # pkgs.imagemagick  # DISABLED: Only needed for icon tinting (see icons.py)
     pkgs.swww
     pkgs.libnotify
     pkgs.procps
@@ -61,6 +61,11 @@ let
     exec magician test "$@"
   '';
 
+  precacheScript = pkgs.writeShellScriptBin "theme-precache" ''
+    export PATH=${pkgs.lib.makeBinPath runtimeDeps}:$PATH
+    exec magician precache "$@"
+  '';
+
   # 5. Magician Python Environment
   magicianEnv = pkgs.python3.withPackages (ps: [
     ps.pillow
@@ -69,6 +74,7 @@ let
     ps.tomli
     ps.pydantic
     ps.coloraide
+    ps.blake3 # For wallpaper hash caching
   ]);
 
   magicianScript = pkgs.writeShellScriptBin "magician" ''
@@ -84,5 +90,6 @@ in
     engineScript
     compareScript
     testScript
+    precacheScript
     ;
 }
