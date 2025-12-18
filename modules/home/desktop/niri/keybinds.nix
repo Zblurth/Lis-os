@@ -13,10 +13,9 @@
       Mod+E { spawn "errands"; }
       Mod+Z { spawn "zeditor"; }
 
-      // Mod+Space { spawn "launcher"; }
-      Mod+V { spawn "clipboard-manager"; }
-      // Ctrl+Q { spawn "launcher" "windows"; }
-      Mod+Shift+W { spawn "wall-select"; }
+      Mod+Space { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
+      Mod+V { spawn "noctalia-shell" "ipc" "call" "launcher" "clipboard"; }
+      Mod+Shift+W { spawn "noctalia-shell" "ipc" "call" "wallpaper" "toggle"; }
       
       // IDE Layout (Antigravity + WezTerm on WS1)
       Mod+Shift+1 { spawn "bash" "-c" "niri msg action focus-workspace 1; (cd ~/Lis-os && antigravity &); sleep 1; niri msg action set-column-width '66.667%'; sleep 0.2; wezterm start --always-new-process --cwd ~/Lis-os &"; }
@@ -28,6 +27,7 @@
 
       // === System & Window Management ===
       Mod+S { screenshot; }
+      Mod+Backspace { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
       Mod+Q { close-window; }
       Mod+Shift+Q { quit; }
       Mod+L { spawn "loginctl" "lock-session"; }

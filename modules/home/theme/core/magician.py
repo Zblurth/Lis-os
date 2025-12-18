@@ -261,6 +261,19 @@ def action_set(args):
         # bg      -> Surface
         # fg      -> OnSurface
         
+        def with_alpha(hex_str, alpha_float):
+            """Add transparency (Qt/QML uses #AARRGGBB)."""
+            try:
+                # remove #
+                clean = hex_str.lstrip('#')
+                if len(clean) == 6:
+                    val = int(alpha_float * 255)
+                    alpha_hex = f"{val:02x}"
+                    return f"#{alpha_hex}{clean}"
+                return hex_str
+            except:
+                return hex_str
+
         noctalia_colors = {
             "mPrimary": c["ui_prim"],
             "mOnPrimary": on_color(c["ui_prim"]),
@@ -274,14 +287,16 @@ def action_set(args):
             "mError": c["sem_red"],
             "mOnError": on_color(c["sem_red"]),
             
-            "mSurface": c["bg"],
+            # Apply Opacity to Surfaces (0.85 approx D9, 0.75 approx BF)
+            "mSurface": with_alpha(c["bg"], 0.85),
             "mOnSurface": c["fg"],
             
-            "mSurfaceVariant": shift(c["bg"], 0.05),
+            "mSurfaceVariant": with_alpha(shift(c["bg"], 0.05), 0.75),
             "mOnSurfaceVariant": shift(c["fg"], -0.1),
             
+            # Shadows often need strict handling, but pure black/dark is better
             "mOutline": derive_outline(c["bg"]),
-            "mShadow": derive_shadow(c["bg"]),
+            "mShadow": "#000000", # Force black shadow for better contrast
             
             "mHover": c["syn_acc"],     # Using accent as hover state
             "mOnHover": on_color(c["syn_acc"])
