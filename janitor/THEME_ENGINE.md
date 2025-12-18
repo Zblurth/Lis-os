@@ -1,11 +1,13 @@
 # Lis-OS Theme Engine
 
 **Architecture:** Python + Oklab Color Science  
-**Dependencies:** ImageMagick, Pastel, SWWW, coloraide
+**Dependencies:** Pillow, coloraide, SWWW, blake3
 
 ## Overview
 
 The Theme Engine extracts the perceptual "soul" of a wallpaper and generates harmonious UI palettes using **Oklab** color space. It supports multiple design philosophies called **Moods**.
+
+**Performance:** ~0.7s cold path, instant hot path (cached).
 
 ## File Structure
 
@@ -14,19 +16,17 @@ modules/home/theme/
 ├── config/
 │   └── moods.json          # Mood presets (THE TRUTH)
 ├── core/                   # Python engine
-│   ├── __init__.py
-│   ├── magician.py         # CLI entry point (set|compare|test|daemon)
+│   ├── magician.py         # CLI entry (set|compare|test|daemon|precache)
 │   ├── generator.py        # MoodGenerator (The Brain)
-│   ├── extraction.py       # Saliency algorithm
+│   ├── extraction.py       # Pillow histogram + saliency
 │   ├── renderer.py         # Template substitution
-│   ├── icons.py            # Icon tinting
-│   ├── color.py            # Pastel wrappers
+│   ├── icons.py            # Icon tinting (DISABLED)
+│   ├── color.py            # Native coloraide wrappers
 │   └── resolve_icons.py    # GTK icon resolution
 ├── templates/              # App config templates
-├── daemon/                 # Astal config orchestrator
 ├── stylix/                 # Stylix integration
 ├── default.nix             # Home Manager entry
-└── packages.nix            # Nix wrappers
+└── packages.nix            # Nix wrappers + Python env
 ```
 
 ## CLI Commands
@@ -34,9 +34,19 @@ modules/home/theme/
 | Command | Description |
 |---------|-------------|
 | `theme-engine <image> [--mood NAME]` | Apply wallpaper and generate theme |
+| `theme-precache <folder> [--jobs N]` | Pre-generate palettes for all images |
 | `theme-compare <image>` | Compare all moods side-by-side |
-| `theme-test [--anchor HEX]` | Run stress test (9 anchors × 4 moods) |
+| `theme-test [--anchor HEX]` | Run stress test (10 anchors × moods) |
 | `lis-daemon` | Background watcher (systemd service) |
+
+## Caching
+
+Palettes are cached by Blake3 hash at `~/.cache/theme-engine/palettes/{hash}/{mood}.json`.
+
+- **Cold path:** Extract → Generate → Cache → Apply (~0.7s)
+- **Hot path:** Load cached palette → Apply (~0.7s)
+
+Use `theme-precache ~/Pictures/Wallpapers --jobs 4` to pre-warm the cache.
 
 ## Moods (`config/moods.json`)
 
@@ -45,7 +55,6 @@ modules/home/theme/
 | `adaptive` | `#7E9CD8` | Context-aware warmth, faithful hue |
 | `atmospheric` | `#BD93F9` | High contrast, hue rotation, temp inversion |
 | `pastel` | `#FFB8C6` | High lightness, soft colors |
-| `deep` | `#BD93F9` | OLED-friendly, very dark backgrounds |
 
 ### Mood Config Structure
 
@@ -65,8 +74,8 @@ modules/home/theme/
 Score = Chroma × log(Frequency)
 ```
 
-1. Resize image to 100×100
-2. Boost saturation 1.5×
+1. Resize image to 100×100 (Pillow)
+2. Boost saturation 1.5× (ImageEnhance)
 3. Generate histogram, take top 30 by frequency
 4. For each color: Score = Chroma × log(Count)
 5. Filter out black (L<1) and white (L>98)
@@ -84,6 +93,6 @@ Score = Chroma × log(Frequency)
 | Path | Content |
 |------|---------|
 | `~/.cache/theme-engine/palette.json` | Full palette JSON |
-| `~/.cache/wal/ags-colors.css` | GTK/AGS CSS variables |
-| `~/.config/astal/appearance.json` | Palette for Astal widgets |
-| `~/.cache/lis-icons/` | Tinted application icons |
+| `~/.cache/theme-engine/palettes/` | Pre-cached palettes |
+| `~/.cache/wal/ags-colors.css` | GTK CSS variables |
+| `~/.config/noctalia/colors.json` | Noctalia shell colors |
