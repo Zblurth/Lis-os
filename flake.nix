@@ -14,6 +14,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ags.url = "github:aylur/ags/v2.3.0";
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
   };
   outputs =
     {
@@ -21,6 +22,7 @@
       nixpkgs,
       home-manager,
       niri-flake,
+      chaotic,
       astal,
       ags,
       ...
@@ -58,7 +60,10 @@
             (
               { ... }:
               {
-                nixpkgs.overlays = [ niri-flake.overlays.niri ];
+                nixpkgs.overlays = [
+                  niri-flake.overlays.niri
+                  chaotic.overlays.default
+                ];
               }
             )
             ./hosts/default.nix

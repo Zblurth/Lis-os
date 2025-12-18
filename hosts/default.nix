@@ -2,7 +2,8 @@
 {
   imports = [
     # --- External Modules ---
-    inputs.stylix.nixosModules.stylix # <--- 2. ADD THIS LINE (Loads the Stylix software)
+    inputs.stylix.nixosModules.stylix
+    inputs.chaotic.nixosModules.default
 
     # --- Hardware & Boot ---
     ./hardware.nix

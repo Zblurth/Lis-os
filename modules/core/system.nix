@@ -14,11 +14,9 @@ in
       ];
       substituters = [
         "https://hyprland.cachix.org"
-        "https://nyx.chaotic.cx"
       ];
       trusted-public-keys = [
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-        "nyx.chaotic.cx-1:HfnXSw4pjGN/t5FvAFXxI4uE8r2wkTy85vRpne3w8Fs="
       ];
       warn-dirty = false;
     };
