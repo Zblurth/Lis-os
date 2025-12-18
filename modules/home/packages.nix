@@ -72,6 +72,7 @@
     playerctl # Media keys
     ripgrep # Better grep
     swayosd # Volume/brightness OSD
+    pkgs.gtk4-layer-shell # Required for Astal GTK4
 
     # ========================
     # NIX DEVELOPMENT & TOOLS

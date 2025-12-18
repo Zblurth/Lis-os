@@ -21,6 +21,16 @@
       alsa.support32Bit = true;
       pulse.enable = true;
       wireplumber.enable = true; # Enable WirePlumber session manager
+      extraConfig.pipewire."92-low-rates" = {
+        "context.properties" = {
+          "default.clock.allowed-rates" = [
+            44100
+            48000
+            88200
+            96000
+          ];
+        };
+      };
     };
   };
 

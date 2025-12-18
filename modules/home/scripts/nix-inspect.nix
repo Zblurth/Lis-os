@@ -448,6 +448,178 @@
                   CONSOLE.print(f"[red]Error analyzing disk usage:[/red] {e}")
 
 
+          def show_code_stats(self):
+              """Top 20 Files by LOC (with Char Count)"""
+              target_name = Prompt.ask("Enter folder name to analyze (default: Lis-os)", default="root")
+              
+              target_path = None
+              if target_name == "root":
+                  target_path = ROOT_DIR
+              # Flexible search: check relative to ROOT_DIR or absolute
+              elif os.path.isabs(target_name) and os.path.exists(target_name):
+                  target_path = target_name
+              else:
+                   for root, dirs, _ in os.walk(ROOT_DIR):
+                       if target_name in dirs:
+                           target_path = os.path.join(root, target_name)
+                           break
+              
+              if not target_path or not os.path.exists(target_path):
+                  CONSOLE.print(f"[red]Folder '{target_name}' not found.[/]")
+                  return
+
+              CONSOLE.print(f"[dim]Scanning {target_path}...[/dim]")
+              
+              stats = []
+              
+              for root, _, files in os.walk(target_path):
+                  if "node_modules" in root or ".git" in root or "result" in root: continue
+                  for f in files:
+                      path = os.path.join(root, f)
+                      try:
+                          with open(path, "r", encoding="utf-8", errors="ignore") as fd:
+                              content = fd.read()
+                              lines = len(content.splitlines())
+                              chars = len(content)
+                              stats.append({
+                                  "name": f,
+                                  "rel_path": os.path.relpath(path, target_path),
+                                  "lines": lines,
+                                  "chars": chars
+                              })
+                      except Exception:
+                          continue
+
+              # Sort by LOC
+              stats.sort(key=lambda x: x["lines"], reverse=True)
+              top_files = stats[:20]
+
+              # Single Table
+              table = Table(title=f"Top 20 Largest Files ({os.path.basename(target_path)})", header_style="bold blue")
+              table.add_column("#", style="dim", justify="right", width=4)
+              table.add_column("File", style="white")
+              table.add_column("LOC", justify="right", style="cyan")
+              table.add_column("Chars", justify="right", style="magenta")
+              
+              for idx, item in enumerate(top_files, 1):
+                  path_display = item["rel_path"]
+                  if len(path_display) > 50: path_display = "..." + path_display[-47:]
+                  table.add_row(
+                      str(idx), 
+                      path_display, 
+                      f"{item['lines']:,}", 
+                      f"{item['chars']:,}"
+                  )
+
+              CONSOLE.print(table)
+
+
+          def analyze_folder_weights(self):
+              """Recursive Folder Weight Analysis"""
+              target_name = Prompt.ask("Enter folder name to analyze (default: Lis-os)", default="root")
+              
+              target_path = None
+              if target_name == "root":
+                  target_path = ROOT_DIR
+              elif os.path.isabs(target_name) and os.path.exists(target_name):
+                  target_path = target_name
+              else:
+                   for root, dirs, _ in os.walk(ROOT_DIR):
+                       if target_name in dirs:
+                           target_path = os.path.join(root, target_name)
+                           break
+              
+              if not target_path or not os.path.exists(target_path):
+                  CONSOLE.print(f"[red]Folder '{target_name}' not found.[/]")
+                  return
+
+              CONSOLE.print(f"[dim]Calculating folder weights for: {target_path}... (Use Ctrl+C to stop)[/dim]")
+              
+              # Map: folder_path -> {lines: 0, chars: 0}
+              # We need to accumulate bottom-up or just sum everything?
+              # "Total lines inside this folder (recursive)"
+              
+              folder_stats = {}
+              
+              for root, dirs, files in os.walk(target_path):
+                  # Filter common garbage for the walker, but we WANT node_modules to show up if selected,
+                  # however, if we are scanning Root, we might want to see them.
+                  # The user specifically said "node_module folder is over 1 millions tokens used so we need to make LLM tool not dump it"
+                  # but "make a tool in nix_inspect that list the total lines and charater of a folder".
+                  # So we SHOULD include node_modules in the stats to shame it.
+                  
+                  if ".git" in root or "result" in root: continue
+                  
+                  current_lines = 0
+                  current_chars = 0
+                  
+                  for f in files:
+                      path = os.path.join(root, f)
+                      try:
+                          # Quick read, maybe binary check?
+                          # Just ignore errors
+                          with open(path, "r", encoding="utf-8", errors="ignore") as fd:
+                              # Reading strictly for stats, not loading all into memory at once if possible?
+                              # But we need lines.
+                              # For speed on massive node_modules, maybe just file size? 
+                              # User asked for "lines and charater".
+                              content = fd.read()
+                              current_lines += len(content.splitlines())
+                              current_chars += len(content)
+                      except Exception:
+                          continue
+
+                  # Add to current folder AND all parents up to target_path
+                  temp_path = root
+                  while True:
+                      if temp_path not in folder_stats:
+                          folder_stats[temp_path] = {"lines": 0, "chars": 0}
+                      
+                      folder_stats[temp_path]["lines"] += current_lines
+                      folder_stats[temp_path]["chars"] += current_chars
+                      
+                      if temp_path == target_path:
+                          break
+                      parent = os.path.dirname(temp_path)
+                      if len(parent) < len(target_path): # Should not happen if walking inside target
+                          break
+                      temp_path = parent
+
+              # Sort
+              sorted_folders = []
+              for p, s in folder_stats.items():
+                  sorted_folders.append({
+                      "path": p,
+                      "rel_path": os.path.relpath(p, target_path),
+                      "lines": s["lines"],
+                      "chars": s["chars"]
+                  })
+
+              # Sort by Chars (Tokens proxy)
+              sorted_folders.sort(key=lambda x: x["chars"], reverse=True)
+              
+              # Table
+              table = Table(title=f"Top 20 Heaviest Folders ({os.path.basename(target_path)})", header_style="bold red")
+              table.add_column("#", style="dim", justify="right", width=4)
+              table.add_column("Folder Path", style="white")
+              table.add_column("Total LOC", justify="right", style="cyan")
+              table.add_column("Total Chars", justify="right", style="magenta")
+              
+              for idx, item in enumerate(sorted_folders[:20], 1):
+                  path_display = item["rel_path"]
+                  if path_display == ".": path_display = "[ROOT]"
+                  if len(path_display) > 50: path_display = "..." + path_display[-47:]
+                  
+                  table.add_row(
+                      str(idx),
+                      path_display,
+                      f"{item['lines']:,}",
+                      f"{item['chars']:,}"
+                  )
+              
+              CONSOLE.print(table)
+
+
           def run(self):
               next_choice = None # Stores a choice if user types it at the prompt
               try:
@@ -459,13 +631,15 @@
                       CONSOLE.print(" [3] [blue]Install Map[/]    (Universal Map)")
                       CONSOLE.print(" [4] [red]Disk Usage[/]     (Analyze sizes)")
                       CONSOLE.print(" [5] [magenta]Vis. Folder[/]    (Inspect non-nix folders)")
+                      CONSOLE.print(" [6] [green]Code Stats[/]     (LOC & Char counts)")
+                      CONSOLE.print(" [7] [red]Folder Weights[/] (Recursive Size)")
                       CONSOLE.print(" [q] Quit")
                       
                       if next_choice:
                           choice = next_choice
                           next_choice = None # Reset after using
                       else:
-                          choice = Prompt.ask("\nSelect", choices=["1", "2", "3", "4", "5", "q"], default="1")
+                          choice = Prompt.ask("\nSelect", choices=["1", "2", "3", "4", "5", "6", "7", "q"], default="1")
                       
                       if choice == "q": break
                       elif choice == "1": self.show_tree()
@@ -473,10 +647,12 @@
                       elif choice == "3": self.show_install_map()
                       elif choice == "4": self.show_disk_usage()
                       elif choice == "5": self.visualize_folder()
+                      elif choice == "6": self.show_code_stats()
+                      elif choice == "7": self.analyze_folder_weights()
                       
                       # Smart Pause: If user types a valid menu number, jump to it next
                       res = Prompt.ask("\n[dim]Press Enter to continue or type number...[/dim]")
-                      if res in ["1", "2", "3", "4", "5", "q"]:
+                      if res in ["1", "2", "3", "4", "5", "6", "7", "q"]:
                           next_choice = res
 
               except KeyboardInterrupt:
@@ -485,7 +661,7 @@
 
       if __name__ == "__main__":
           Dashboard().run()
-    
+
     '')
   ];
 }

@@ -11,7 +11,7 @@
       buildInputs = [ makeWrapper ];
       postBuild = ''
         wrapProgram $out/bin/antigravity \
-          --add-flags "--disable-gpu"
+          --set ELECTRON_OZONE_PLATFORM_HINT "x11"
       '';
     })
     vscode-extensions.jnoortheen.nix-ide

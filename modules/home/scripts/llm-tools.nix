@@ -4,7 +4,7 @@ let
   # --- 1. CONFIGURATION ---
 
   # The "Ignore List"
-  blackListRegex = "\\.git/|flake\\.lock|result|\\.png$|\\.jpg$|\\.jpeg$|\\.webp$|\\.ico$|\\.appimage$|\\.txt$|LICENSE|ags\\.bak/|\\.bak$|\\.DS_Store|zed\\.nix$";
+  blackListRegex = "\\.git/|node_modules/|flake\\.lock|result|\\.png$|\\.jpg$|\\.jpeg$|\\.webp$|\\.ico$|\\.appimage$|\\.txt$|LICENSE|ags\\.bak/|\\.bak$|\\.DS_Store|zed\\.nix$";
 
   # The "Cleaner"
   cleanerSed = "sed '/^[[:space:]]*#/d; /^[[:space:]]*\\/\\//d; /^[[:space:]]*$/d; s/[[:space:]]*$//'";
@@ -141,114 +141,151 @@ in
 
     # --- 5. PATH DUMP (Dynamic Folder) ---
     (pkgs.writeShellScriptBin "path-dump" ''
-      set -euo pipefail
+            set -euo pipefail
 
-      # Check if path argument is provided
-      if [ $# -eq 0 ]; then
-        echo "Usage: path-dump <path>"
-        echo "Example: path-dump modules/home/desktop/astal"
-        exit 1
-      fi
+            # Check if arguments are provided
+            if [ $# -eq 0 ]; then
+              echo "Usage: path-dump <path1> [path2] ..."
+              echo "Example: path-dump modules/home/desktop/astal janitor"
+              exit 1
+            fi
 
-      # Get target path from first argument
-      TARGET_PATH="''${1%/}"  # Remove trailing slash if present
+            # Find repository root
+            if git rev-parse --git-dir > /dev/null 2>&1; then
+              REPO_ROOT=$(git rev-parse --show-toplevel)
+            else
+              REPO_ROOT="."
+            fi
 
-      # Find repository root
-      if git rev-parse --git-dir > /dev/null 2>&1; then
-        REPO_ROOT=$(git rev-parse --show-toplevel)
-      else
-        REPO_ROOT="."
-      fi
+            cd "$REPO_ROOT" || exit 1
 
-      cd "$REPO_ROOT" || exit 1
+            # --- COLLECT FILES FROM ALL PATHS ---
+            ALL_FILES=""
+            SAFE_NAME_PARTS=""
 
-      # Verify path exists
-      if [ ! -e "$TARGET_PATH" ]; then
-        echo "❌ Error: Path not found: $TARGET_PATH"
-        exit 1
-      fi
+            for TARGET_PATH in "$@"; do
+                # Remove trailing slash
+                TARGET_PATH="''${TARGET_PATH%/}"
 
-      # Create safe filename from path
-      SAFE_NAME=''${TARGET_PATH//\//-}
-      FINAL_OUTPUT="Lis-os-path-''${SAFE_NAME}.txt"
+                if [ ! -e "$TARGET_PATH" ]; then
+                   echo "⚠️ Warning: Path not found: $TARGET_PATH"
+                   continue
+                fi
 
-      echo "🤖 Generating path dump for: $TARGET_PATH"
+                # Safe name for output file
+                PART_NAME=''${TARGET_PATH//\//-}
+                SAFE_NAME_PARTS="''${SAFE_NAME_PARTS}-''${PART_NAME}"
 
-      # Get files based on whether path is file or directory
-      if [ -f "$TARGET_PATH" ]; then
-        FILES="$TARGET_PATH"
-      else
-        # Get all files recursively for directory
-        if git rev-parse --git-dir > /dev/null 2>&1; then
-          FILES=$(git ls-files -- "$TARGET_PATH" 2>/dev/null || git ls-files | grep "^''${TARGET_PATH}/" || echo "")
-        else
-          FILES=$(find "$TARGET_PATH" -type f 2>/dev/null | sed "s|^$REPO_ROOT/||" || echo "")
-        fi
-      fi
+                echo "🔍 Scanning: $TARGET_PATH"
 
-      # Apply blacklist filter
-      BLACK_LIST_REGEX="${blackListRegex}"
-      FILES=$(echo "$FILES" | grep -vE "$BLACK_LIST_REGEX" || echo "")
+                # Get files
+                if [ -f "$TARGET_PATH" ]; then
+                   FOUND="$TARGET_PATH"
+                else
+                   if git rev-parse --git-dir > /dev/null 2>&1; then
+                     FOUND=$(git ls-files -- "$TARGET_PATH" 2>/dev/null || git ls-files | grep "^''${TARGET_PATH}/" || echo "")
+                   else
+                     FOUND=$(find "$TARGET_PATH" -type f 2>/dev/null | sed "s|^$REPO_ROOT/||" || echo "")
+                   fi
+                fi
+                
+                # Append to ALL_FILES (newline separated)
+                if [ -n "$FOUND" ]; then
+                   ALL_FILES="''${ALL_FILES}
+      ''${FOUND}"
+                fi
+            done
 
-      # Sort files
-      FILES=$(echo "$FILES" | sort)
+            # Clean up file list (trim empty lines, sort, unique)
+            FILES=$(echo "$ALL_FILES" | grep -v "^$" | sort | uniq)
 
-      # Check if any files remain after filtering
-      if [ -z "$FILES" ]; then
-        echo "⚠️  No files found for path: $TARGET_PATH"
-        exit 1
-      fi
+            # Apply blacklist filter
+            BLACK_LIST_REGEX="${blackListRegex}"
+            FILES=$(echo "$FILES" | grep -vE "$BLACK_LIST_REGEX" || echo "")
 
-      # Generate output file
-      {
-        echo "@META: Path dump for $TARGET_PATH | Host: $HOSTNAME"
-        echo ""
+            if [ -z "$FILES" ]; then
+              echo "❌ No files found in specified paths."
+              exit 1
+            fi
 
-        # --- INJECT CONTEXT.MD IF EXISTS ---
-        if [ -f "CONTEXT.md" ]; then
-          echo "@CONTEXT_START"
-          cat "CONTEXT.md"
-          echo "@CONTEXT_END"
-          echo ""
-        fi
-        # -----------------------------------
+            # Output Filename
+            FINAL_OUTPUT="Lis-os-dump''${SAFE_NAME_PARTS}.txt"
 
-        echo "@MAP_START"
-        echo "$FILES"
-        echo "@MAP_END"
-        echo ""
-      } > "$FINAL_OUTPUT"
+            echo "🤖 Generating dump..."
 
-      # Process each file
-      LAST_DIR=""
-      echo "$FILES" | while read -r file; do
-        [ -f "$file" ] || continue
+            # --- GENERATE OUTPUT ---
+            {
+              echo "@META: Multi-Path Dump | Host: $HOSTNAME"
+              echo "@PATHS: $*"
+              echo ""
 
-        CONTENT=$(${cleanerSed} "$file" 2>/dev/null || echo "")
+              # --- A. INJECT GEMINI.MD (PRIORITY) ---
+              if [ -f "janitor/GEMINI.md" ]; then
+                 echo "found GEMINI.md, injecting..." >&2
+                 echo "@GEMINI_START"
+                 cat "janitor/GEMINI.md"
+                 echo "@GEMINI_END"
+                 echo ""
+              fi
 
-        if [[ -n "$CONTENT" ]]; then
-          CURRENT_DIR=$(dirname "$file")
-          FILENAME=$(basename "$file")
+              # --- B. INJECT CONTEXT.MD (FALLBACK/ADDITIONAL) ---
+              if [ -f "CONTEXT.md" ]; then
+                echo "@CONTEXT_START"
+                cat "CONTEXT.md"
+                echo "@CONTEXT_END"
+                echo ""
+              fi
 
-          if [[ "$CURRENT_DIR" != "$LAST_DIR" ]]; then
-            echo "@DIR $CURRENT_DIR" >> "$FINAL_OUTPUT"
-            LAST_DIR="$CURRENT_DIR"
-          fi
+              echo "@MAP_START"
+              echo "$FILES"
+              echo "@MAP_END"
+              echo ""
+            } > "$FINAL_OUTPUT"
 
-          echo "@FILE $FILENAME" >> "$FINAL_OUTPUT"
-          echo "$CONTENT" >> "$FINAL_OUTPUT"
-          echo "" >> "$FINAL_OUTPUT"
+            # --- PROCESS CONTENT ---
+            LAST_DIR=""
+            
+            # We iterate over the file list string
+            echo "$FILES" | while read -r file; do
+              [ -f "$file" ] || continue
 
-          echo -n "."
-        fi
-      done
+              # 1. CHECK LINE COUNT
+              LINES=$(wc -l < "$file")
+              
+              CURRENT_DIR=$(dirname "$file")
+              FILENAME=$(basename "$file")
 
-      echo ""
-      BYTES=$(wc -c < "$FINAL_OUTPUT")
-      TOKENS=$((BYTES / 3))
+              # Dir Header
+              if [[ "$CURRENT_DIR" != "$LAST_DIR" ]]; then
+                  echo "@DIR $CURRENT_DIR" >> "$FINAL_OUTPUT"
+                  LAST_DIR="$CURRENT_DIR"
+              fi
 
-      echo "✅ Path Dump: $REPO_ROOT/$FINAL_OUTPUT"
-      echo "📊 Size: $(($BYTES / 1024)) KB (~$TOKENS Tokens)"
+              echo "@FILE $FILENAME" >> "$FINAL_OUTPUT"
+
+              if [ "$LINES" -gt 1000 ]; then
+                   # 2. LARGE FILE HANDLING
+                   echo "[IGNORED: File too large ($LINES lines). Path: $file]" >> "$FINAL_OUTPUT"
+                   echo "" >> "$FINAL_OUTPUT"
+                   echo -n "S" # Skip indicator
+              else
+                   # 3. NORMAL CONTENT
+                   CONTENT=$(${cleanerSed} "$file" 2>/dev/null || echo "")
+                   if [[ -n "$CONTENT" ]]; then
+                     echo "$CONTENT" >> "$FINAL_OUTPUT"
+                     echo "" >> "$FINAL_OUTPUT"
+                     echo -n "."
+                   fi
+              fi
+
+            done
+
+            echo ""
+            BYTES=$(wc -c < "$FINAL_OUTPUT")
+            TOKENS=$((BYTES / 3))
+
+            echo "✅ Dump Created: $REPO_ROOT/$FINAL_OUTPUT"
+            echo "📊 Size: $(($BYTES / 1024)) KB (~$TOKENS Tokens)"
     '')
   ];
 }
