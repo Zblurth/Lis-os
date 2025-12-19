@@ -29,6 +29,9 @@
     # --- Apps ---
     ../modules/core/nh.nix
     ../modules/core/steam.nix
+
+    # --- Virtualization (Arch testing) ---
+    ../modules/core/virtualization.nix
   ];
 
   # --- Host Specific Configuration ---

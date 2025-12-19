@@ -6,6 +6,9 @@ let
   # The "Ignore List"
   blackListRegex = "\\.git/|node_modules/|flake\\.lock|result|\\.png$|\\.jpg$|\\.jpeg$|\\.webp$|\\.ico$|\\.appimage$|\\.txt$|LICENSE|ags\\.bak/|\\.bak$|\\.DS_Store|zed\\.nix$";
 
+  # Lean blacklist - for NixOS config only (excludes heavy dev folders)
+  leanBlackListRegex = "${blackListRegex}|desktop/astal|noctalia-debug|sessions/|\\.md$|\\.tsx$|\\.ts$|\\.js$|\\.css$|\\.scss$|\\.json$|bundle\\.js|package\\.json|tsconfig|astal_legacy";
+
   # The "Cleaner"
   cleanerSed = "sed '/^[[:space:]]*#/d; /^[[:space:]]*\\/\\//d; /^[[:space:]]*$/d; s/[[:space:]]*$//'";
 
@@ -138,8 +141,80 @@ in
         "hosts/"
       ];
     })
+    # --- 5. LEAN DUMP (NixOS Config Only - No Heavy Folders) ---
+    (pkgs.writeShellScriptBin "lean-dump" ''
+      set -euo pipefail
+      FINAL_OUTPUT="Lis-os-lean.txt"
+      REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
+      cd "$REPO_ROOT" || exit 1
 
-    # --- 5. PATH DUMP (Dynamic Folder) ---
+      echo "🤖 Generating LEAN NixOS Config Dump..."
+
+      # Get files, apply LEAN blacklist (excludes astal, noctalia-debug, md, ts, etc)
+      LEAN_BLACKLIST="${leanBlackListRegex}"
+      FILES=$(git ls-files | grep -vE "$LEAN_BLACKLIST" | sort)
+
+      if [ -z "$FILES" ]; then
+        echo "❌ No files found after filtering."
+        exit 1
+      fi
+
+      # Count files
+      FILE_COUNT=$(echo "$FILES" | wc -l)
+      echo "📁 Found $FILE_COUNT files (after lean filtering)"
+
+      # Write output
+      {
+        echo "@META: LEAN NixOS Config | Host: $HOSTNAME"
+        echo "@PURPOSE: Portable config reference for Arch/dcli migration"
+        echo ""
+
+        # Inject GEMINI context
+        if [ -f "janitor/GEMINI.md" ]; then
+          echo "@GEMINI_START"
+          cat "janitor/GEMINI.md"
+          echo "@GEMINI_END"
+          echo ""
+        fi
+
+        echo "@MAP_START"
+        echo "$FILES"
+        echo "@MAP_END"
+        echo ""
+      } > "$FINAL_OUTPUT"
+
+      # Process content
+      LAST_DIR=""
+      echo "$FILES" | while read -r file; do
+        [ -f "$file" ] || continue
+        
+        CONTENT=$(${cleanerSed} "$file" 2>/dev/null || echo "")
+        
+        if [[ -n "$CONTENT" ]]; then
+          CURRENT_DIR=$(dirname "$file")
+          FILENAME=$(basename "$file")
+
+          if [[ "$CURRENT_DIR" != "$LAST_DIR" ]]; then
+            echo "@DIR $CURRENT_DIR" >> "$FINAL_OUTPUT"
+            LAST_DIR="$CURRENT_DIR"
+          fi
+
+          echo "@FILE $FILENAME" >> "$FINAL_OUTPUT"
+          echo "$CONTENT" >> "$FINAL_OUTPUT"
+          echo "" >> "$FINAL_OUTPUT"
+          echo -n "."
+        fi
+      done
+
+      echo ""
+      BYTES=$(wc -c < "$FINAL_OUTPUT")
+      TOKENS=$((BYTES / 3))
+
+      echo "✅ Lean Dump: $REPO_ROOT/$FINAL_OUTPUT"
+      echo "📊 Size: $(($BYTES / 1024)) KB (~$TOKENS Tokens)"
+    '')
+
+    # --- 6. PATH DUMP (Dynamic Folder) ---
     (pkgs.writeShellScriptBin "path-dump" ''
             set -euo pipefail
 

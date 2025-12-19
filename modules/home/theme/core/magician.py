@@ -824,20 +824,20 @@ def action_precache(args):
 
 
 def main():
-    # Auto-launch TUI if no arguments provided
+    # Show help if no arguments provided
     if len(sys.argv) == 1:
-        try:
-            from core.tui import MagicianApp
-            app = MagicianApp()
-            app.run()
-            sys.exit(0)
-        except ImportError as e:
-            print(f"TUI Error: {e}")
-            print("Please ensure 'textual' is installed and PYTHONPATH is correct.")
-            sys.exit(1)
-        except Exception as e:
-            print(f"Failed to launch TUI: {e}")
-            sys.exit(1)
+        print("Usage: magician <command> [options]")
+        print("")
+        print("Commands:")
+        print("  set <image>     Set theme from image")
+        print("  compare <image> Compare all moods for image")
+        print("  test            Run stress tests")
+        print("  daemon          Watch folder for changes")
+        print("  precache        Pre-generate palettes")
+        print("")
+        print("Run 'magician <command> --help' for more info.")
+        sys.exit(0)
+
 
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Lis-OS Theme Engine")
