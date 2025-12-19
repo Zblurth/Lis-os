@@ -195,16 +195,16 @@ class MatrixPanel(Static):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.colors: dict = {}
+        self.palette_colors: dict = {}
     
-    def update_colors(self, colors: dict):
+    def update_colors(self, palette_colors: dict):
         """Update the matrix with new colors."""
-        self.colors = colors
+        self.palette_colors = palette_colors
         self.refresh_matrix()
     
     def refresh_matrix(self):
         """Rebuild the matrix display."""
-        if not self.colors:
+        if not self.palette_colors:
             self.update("[dim]No palette loaded[/dim]")
             return
         
@@ -214,14 +214,14 @@ class MatrixPanel(Static):
         lines.append("│     [bg]  [surf] [light] [anchor]       │")
         
         # Get background colors
-        bg = self.colors.get("bg", "#000000")
-        surf = self.colors.get("surface", "#111111")
-        light = self.colors.get("surfaceLighter", "#222222")
-        anchor = self.colors.get("anchor", "#888888")
+        bg = self.palette_colors.get("bg", "#000000")
+        surf = self.palette_colors.get("surface", "#111111")
+        light = self.palette_colors.get("surfaceLighter", "#222222")
+        anchor = self.palette_colors.get("anchor", "#888888")
         
         # Get foreground colors
-        fg = self.colors.get("fg", "#ffffff")
-        fg_dim = self.colors.get("fg_dim", "#aaaaaa")
+        fg = self.palette_colors.get("fg", "#ffffff")
+        fg_dim = self.palette_colors.get("fg_dim", "#aaaaaa")
         
         # Build rows with braille patterns
         # Using colored braille to show the FG color
@@ -270,7 +270,7 @@ class MatrixPanel(Static):
         
         row = "│     "
         for key in sem_colors:
-            c = self.colors.get(key, "#888888")
+            c = self.palette_colors.get(key, "#888888")
             row += f" ⣿    "
         row += "│"
         lines.append(row)
