@@ -4,7 +4,7 @@
     enable = true;
     enable32Bit = true;
   };
-  chaotic.mesa-git.enable = true;
+
   services.xserver.videoDrivers = [ "amdgpu" ];
   systemd.tmpfiles.rules = [
     "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"

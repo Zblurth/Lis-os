@@ -43,7 +43,7 @@ in
     ];
 
     # 5. Initialization
-    initExtra = ''
+    initContent = ''
       # --- FZF Tab Config (The Magic) ---
       # This replaces standard tab completion with fzf
 

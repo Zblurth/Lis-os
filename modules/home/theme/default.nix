@@ -22,6 +22,7 @@ in
     # Binary Dependencies (pastel/imagemagick removed - now native or disabled)
     pkgs.jq
     pkgs.swww
+    pkgs.gowall # Make gowall available interactively
   ];
 
   # 2. Systemd Service for the Daemon

@@ -1,267 +1,262 @@
 """
-The "Mood Engine" (Data-Driven Generator)
-Reads configuration from moods.json to determine color logic.
+generator.py — Color Science v2
+Generates a harmonic palette from extracted colors using Matsuda's Harmonic Templates.
+
+Replaces the legacy MoodGenerator and hardcoded poles.
 """
-import math
-from typing import Dict, Any
+from dataclasses import dataclass, field
+from typing import List, Tuple, Dict, Optional
+import numpy as np
 from coloraide import Color
 
-# Define Semantic Bases
-SEMANTIC_BASES = {
-    "red": Color("oklab", [0.65, 0.25, 0.08]),
-    "green": Color("oklab", [0.70, 0.20, 0.40]),
-    "yellow": Color("oklab", [0.75, 0.18, 0.17]),
-    "blue": Color("oklab", [0.70, 0.22, -0.20])
-}
+# -------------------------------------------------------------------------
+# 1. Harmonic Templates (Matsuda 1995)
+# -------------------------------------------------------------------------
 
-class MoodGenerator:
-    def __init__(self, anchor_hex: str, config: Dict[str, Any]):
-        self.anchor = Color(anchor_hex).convert("oklab")
-        self.anchor_hex = anchor_hex
-        self.anchor_lch = self.anchor.convert("oklch")
+@dataclass
+class HarmonicSector:
+    width: float   # Degrees
+    offset: float  # Degrees from primary center
+
+@dataclass
+class HarmonicTemplate:
+    name: str
+    description: str
+    sectors: List[HarmonicSector]
+
+# Define the 7 Standard Templates
+TEMPLATES = [
+    HarmonicTemplate("i", "Identity",     [HarmonicSector(18.0, 0.0)]),
+    HarmonicTemplate("V", "V-Shape",      [HarmonicSector(93.6, 0.0)]),
+    HarmonicTemplate("L", "L-Shape",      [HarmonicSector(18.0, 0.0), HarmonicSector(79.2, 90.0)]),
+    HarmonicTemplate("I", "Complementary",[HarmonicSector(18.0, 0.0), HarmonicSector(18.0, 180.0)]),
+    HarmonicTemplate("T", "Triad",        [HarmonicSector(180.0, 0.0)]), # Simply loose half-circle
+    HarmonicTemplate("Y", "Split Comp",   [HarmonicSector(93.6, 0.0), HarmonicSector(18.0, 180.0)]),
+    HarmonicTemplate("X", "X-Shape",      [HarmonicSector(93.6, 0.0), HarmonicSector(93.6, 180.0)]),
+]
+
+@dataclass
+class PaletteConfig:
+    mood: str = "adaptive"
+    dark_mode_l: float = 0.20       # Adjusted to match standard dark themes (VSCode/Dracula)
+    light_mode_l: float = 0.96
+    bg_chroma: float = 0.025
+
+# -------------------------------------------------------------------------
+# 2. Generator Class
+# -------------------------------------------------------------------------
+
+from core.solver import solve_contrast
+
+class PaletteGenerator:
+    """
+    Fits harmonic templates to source colors and generates a full UI palette.
+    """
+    def __init__(self, config: PaletteConfig = PaletteConfig()):
         self.config = config
+        self.templates = TEMPLATES
+
+    def generate(self, anchor_hex: str, extracted_palette: List[str], weights: List[float]) -> Dict:
+        """
+        Main entry point.
+        """
+        anchor = Color(anchor_hex)
         
-        # Temp Detection
-        self.is_cool = self.anchor['b'] < 0.02
+        # --- 1. Fit Template ---
+        hues = []
+        valid_weights = []
+        for hex_val, w in zip(extracted_palette, weights):
+            c = Color(hex_val).convert("oklch")
+            if c['c'] > 0.02: 
+                hues.append(c['h'])
+                valid_weights.append(w)
         
-        # Adaptive Poles (Defaults if not in config)
-        if self.is_cool:
-            self.harmonic_pole = 270.0
-            self.adaptive_shadow = "#1a1c2c"
+        if not hues:
+            best_template = self.templates[0]
+            best_rotation = anchor.convert("oklch")['h']
         else:
-            self.harmonic_pole = 90.0
-            self.adaptive_shadow = "#a0826d"
+            best_template, best_rotation = self._fit_template(hues, valid_weights)
+            
+        # --- 2. Determine Background ---
+        # Heuristic: Check anchor L to decide Theme Mode (Light/Dark)?
+        # Or force Dark Mode for now (as standard efficient theme)?
+        # Let's derive from anchor lightness.
+        # If anchor L < 0.5, assume Dark Mode intent -> Bg L~0.04
+        # If anchor L > 0.8, assume Light Mode intent -> Bg L~0.96
+        # Else (Midtones) -> Default to Dark Mode usually for "system themes".
+        # Let's default to a Deep Dark bg for vibrancy.
+        
+        # Override: derive logic
+        anchor_l = anchor.convert("oklch")['l']
+        is_light_theme = anchor_l > 0.9
+        
+        # Tune by Mood
+        bg_l = self.config.dark_mode_l
+        bg_c = self.config.bg_chroma
+        
+        if self.config.mood == 'pastel':
+            bg_l = 0.25 if not is_light_theme else 0.98
+            bg_c = 0.04
+        elif self.config.mood == 'deep':
+            bg_l = 0.05
+            bg_c = 0.02
+        elif self.config.mood == 'vibrant':
+            bg_c = 0.06
+            
+        if is_light_theme:
+            bg_l = self.config.light_mode_l
 
-    # ==========================================
-    # BACKGROUND LOGIC
-    # ==========================================
-    def _generate_background(self) -> Color:
-        cfg = self.config.get("background", {})
-        algo = cfg.get("algo", "adaptive_shadow")
-        target_L = cfg.get("target_L", 0.26)
+        # Use anchor hue
+        bg_color = Color("oklch", [bg_l, bg_c, anchor.convert("oklch")['h']])
+        if not bg_color.in_gamut('srgb'):
+            bg_color.fit('srgb')
+        bg_hex = bg_color.to_string(hex=True)
         
-        if algo == "adaptive_shadow":
-            # Determine root
-            root_hex = cfg.get("shadow_root", "adaptive")
-            if root_hex == "adaptive":
-                root_hex = self.adaptive_shadow
-            
-            shadow_root = Color(root_hex).convert("oklab")
-            
-            # Mix: mix_strength is Shadow amount? 
-            # In config: "mix_strength": 0.30.
-            # v5 logic was 70% Anchor / 30% Shadow.
-            # So mix(anchor, 1.0 - strength)? No, mix(anchor, strength) mixes self with anchor.
-            # shadow_root.mix(anchor, 1.0 - strength).
-            
-            strength = cfg.get("mix_strength", 0.30)
-            anchor_ratio = 1.0 - strength
-            
-            base = shadow_root.mix(self.anchor, anchor_ratio, space="oklab")
-            bg = base.set('lightness', target_L)
-            
-            # Inverse Warmth (Correction) for Dark Themes
-            if target_L < 0.5:
-                shift = cfg.get("warmth_boost", 0.015)
-                if self.is_cool: bg.set('b', bg['b'] - shift/2)
-                else: bg.set('b', bg['b'] + shift)
-            
-            # Chroma Compression
-            bg_lch = bg.convert("oklch")
-            l = bg_lch['lightness']
-            if l > 0: bg_lch.set('chroma', bg_lch['chroma'] * math.sqrt(l))
-            
-            return bg_lch.convert("oklab")
-            
-        return self.anchor.clone().set('lightness', target_L)
+        # --- 3. Solve Colors Against Background ---
+        
+        def solve(base_color: Color, min_ratio=4.5) -> str:
+            c = base_color.convert("oklch")
+            return solve_contrast(bg_hex, c['h'], c['c'], min_ratio=min_ratio)
 
-    # ==========================================
-    # HERO LOGIC
-    # ==========================================
-    def _generate_hero(self, bg: Color) -> Color:
-        cfg = self.config.get("hero", {})
-        algo = cfg.get("algo", "delta_e_loop")
+        # Primary UI (usually anchor derived)
+        primary = Color(solve_contrast(bg_hex, anchor.convert("oklch")['h'], 0.14, min_ratio=3.0))
+        # Note: 0.14 chroma is a "vibrant but safe" target if original anchor is dull. 
+        # Actually use Anchor's own chroma?
+        # Let's use Anchor's chroma but clamp it.
+        anc_c = anchor.convert("oklch")['c']
+        target_c = max(0.12, anc_c) # boost dull anchors slightly
+        primary_hex = solve_contrast(bg_hex, anchor.convert("oklch")['h'], target_c, min_ratio=3.0)
         
-        if algo == "delta_e_loop":
-            target_delta = cfg.get("target_delta", 45)
-            fence = cfg.get("hue_fence", 25)
-            
-            hero = self.anchor.clone().set('lightness', 0.65)
-            anchor_h = self.anchor_lch['hue']
-            
-            # Initial Seed
-            c_mag = math.sqrt(self.anchor['a']**2 + self.anchor['b']**2)
-            log_boost = 1.0 + 0.4 * math.log1p(c_mag * 3.0)
-            hero_lch = hero.convert("oklch")
-            hero_lch.set('chroma', hero_lch['chroma'] * log_boost)
-            hero = hero_lch.convert("oklab")
-            
-            for _ in range(20):
-                if hero.delta_e(bg, method="cmc") >= target_delta: break
-                
-                hero.convert("oklch", in_place=True)
-                hero.set('chroma', hero['chroma'] * 1.1)
-                
-                # Fencing
-                curr_h = hero['hue']
-                diff = curr_h - anchor_h
-                while diff > 180: diff -= 360
-                while diff < -180: diff += 360
-                if abs(diff) > fence:
-                    hero.set('hue', anchor_h + (fence if diff > 0 else -fence))
-                    
-                hero.convert("oklab", in_place=True)
-                if math.sqrt(hero['a']**2 + hero['b']**2) > 0.50: break
-            return hero
-            
-        elif algo == "log_boost_rotate":
-            rotation = cfg.get("rotation", -15)
-            
-            c_mag = math.sqrt(self.anchor['a']**2 + self.anchor['b']**2)
-            boost = 1.0 + 0.4 * math.log1p(c_mag * 3.0)
-            new_a = self.anchor['a'] * boost
-            new_b = self.anchor['b'] * boost
-            c = Color('oklab', [0.65, new_a, new_b])
-            
-            c.convert("oklch", in_place=True)
-            c.set('hue', c['hue'] + rotation)
-            return c.convert("oklab")
-            
-        return self.anchor.clone()
+        # Secondary/Tertiary
+        sec_base = self._derive_color_from_template(anchor, best_template, best_rotation, "secondary")
+        sec_hex = solve_contrast(bg_hex, sec_base['h'], target_c, min_ratio=3.0)
+        
+        ter_base = self._derive_color_from_template(anchor, best_template, best_rotation, "tertiary")
+        ter_hex = solve_contrast(bg_hex, ter_base['h'], target_c, min_ratio=3.0)
 
-    # ==========================================
-    # TEXT LOGIC
-    # ==========================================
-    def _generate_text(self) -> Dict[str, Color]:
-        cfg = self.config.get("text", {})
-        algo = cfg.get("algo", "harmonized")
-        
-        if algo == "harmonized":
-            drift = cfg.get("drift", 0.10)
-            bias = cfg.get("warmth_bias", True)
-            
-            h = self.anchor_lch['hue']
-            pole = self.harmonic_pole
-            diff = pole - h
-            while diff > 180: diff -= 360
-            while diff < -180: diff += 360
-            harmonized_h = h + (diff * drift)
-            
-            c_base = self.anchor_lch['chroma']
-            
-            def make(l, c_mult):
-                c = Color("oklch", [l, c_base * c_mult, harmonized_h])
-                c_lab = c.convert("oklab")
-                if bias:
-                    haze = 0.005 + (l * 0.025)
-                    if self.is_cool: c_lab.set('b', c_lab['b'] - haze)
-                    else: c_lab.set('b', c_lab['b'] + haze)
-                return c_lab
-            return {"fg": make(0.90, 0.10), "fg_dim": make(0.75, 0.10), "fg_muted": make(0.55, 0.05)}
-            
-        elif algo == "temp_inversion":
-            shift = cfg.get("shift", 0.02)
-            a = self.anchor['a'] * 0.1
-            b = self.anchor['b'] * 0.1
-            if self.is_cool: b += shift
-            else: b -= shift
-            
-            def make(l): return Color('oklab', [l, a, b])
-            return {"fg": make(0.90), "fg_dim": make(0.70), "fg_muted": make(0.55)}
-            
-        return {}
-
-    # ==========================================
-    # EXECUTE
-    # ==========================================
-    def generate(self) -> Dict[str, Any]:
-        bg_lab = self._generate_background()
-        hero_lab = self._generate_hero(bg_lab)
-        txt = self._generate_text()
-        
-        # Derived
-        bg_hex = bg_lab.convert("srgb").fit(method="lch-chroma").to_string(hex=True)
-        hero_hex = hero_lab.convert("srgb").fit(method="lch-chroma").to_string(hex=True)
-        
-        # UI Sec: BG + Elevation
-        ui_sec_lch = bg_lab.convert("oklch")
-        ui_sec_lch.set('lightness', ui_sec_lch['lightness'] + 0.08)
-        ui_sec_lch.set('chroma', ui_sec_lch['chroma'] * 0.90)
-        ui_sec_hex = ui_sec_lch.convert("srgb").fit(method="lch-chroma").to_string(hex=True)
-        
         # Semantics
-        sem_map = {}
-        for name, base in SEMANTIC_BASES.items():
-            ac = self.anchor_lch['chroma']
-            bc = base.convert("oklch")['chroma']
-            ratio = ac / (ac + bc + 0.001)
-            mixed = base.mix(self.anchor, ratio, space="oklab")
-            m_lch = mixed.convert("oklch")
-            # Harmonize
-            h = m_lch['hue']
-            pole = self.harmonic_pole
-            diff = pole - h
-            while diff > 180: diff -= 360
-            while diff < -180: diff += 360
-            m_lch.set('hue', h + (diff * 0.20))
-            sem_map[f"sem_{name}"] = m_lch.convert("srgb").fit(method="lch-chroma").to_string(hex=True)
-
-        # Syntax
-        syn_key = self.anchor_lch.clone().set('lightness', 0.70)
-        syn_key.set('chroma', syn_key['chroma'] * 1.2)
-        syn_key_hex = syn_key.convert("srgb").fit(method="lch-chroma").to_string(hex=True)
+        err_base = self._harmonize_semantic("error", 29.0, best_template, best_rotation)
+        err_hex = solve_contrast(bg_hex, err_base['h'], 0.15, min_ratio=3.0)
         
-        acc_h = self.anchor_lch['hue'] + 180
-        syn_acc = Color("oklch", [0.68, self.anchor_lch['chroma'] * 1.1, acc_h]).convert("srgb").fit(method="lch-chroma").to_string(hex=True)
+        warn_base = self._harmonize_semantic("warning", 85.0, best_template, best_rotation)
+        warn_hex = solve_contrast(bg_hex, warn_base['h'], 0.15, min_ratio=3.0)
         
-        # Bar BG
-        bar_c = self.anchor.convert("srgb")
-        bar_c.set('alpha', 0.85)
-        bar_bg = bar_c.to_string(comma=True)
-
-        def to_hex(c): return c.convert("srgb").fit(method="lch-chroma").to_string(hex=True)
+        succ_base = self._harmonize_semantic("success", 145.0, best_template, best_rotation)
+        succ_hex = solve_contrast(bg_hex, succ_base['h'], 0.15, min_ratio=3.0)
+        
+        # Text
+        fg_hex = solve_contrast(bg_hex, anchor.convert("oklch")['h'], 0.02, min_ratio=7.0) # High contrast text
 
         return {
+            "template": best_template.name,
+            "rotation": round(best_rotation, 1),
             "colors": {
-                "anchor": self.anchor_hex,
-                "bg": bg_hex,
-                "fg": to_hex(txt.get("fg", self.anchor)), # Safety get
-                "fg_dim": to_hex(txt.get("fg_dim", self.anchor)),
-                "fg_muted": to_hex(txt.get("fg_muted", self.anchor)),
-                "ui_prim": hero_hex,
-                "ui_sec": ui_sec_hex,
-                
-                **sem_map,
-                "syn_key": syn_key_hex,
-                "syn_fun": to_hex(syn_key.clone().set('hue', syn_key['hue'] + 30)),
-                "syn_str": to_hex(syn_key.clone().set('hue', syn_key['hue'] - 30)),
-                "syn_acc": syn_acc,
-                
-                "surface": bg_hex,
-                "surfaceDarker": self.anchor_hex,
-                "surfaceLighter": ui_sec_hex,
-                "text": to_hex(txt.get("fg", self.anchor)),
-                "textDim": to_hex(txt.get("fg_dim", self.anchor)),
-                "textMuted": to_hex(txt.get("fg_muted", self.anchor)),
-                
-                "bar_bg": bar_bg
+                "anchor": anchor_hex,
+                "primary": primary_hex,
+                "secondary": sec_hex,
+                "tertiary": ter_hex,
+                "error": err_hex,
+                "warning": warn_hex,
+                "success": succ_hex,
+                "bg_base": bg_hex, 
+                "fg_base": fg_hex
             }
         }
 
-def generate_palette(anchor_hex: str, profile: Dict[str, Any]) -> Dict[str, Any]:
-    # Determine Active Mood from profile/config
-    # Profile structure: { "moods": { ... }, "active_mood": "adaptive" }
-    
-    active_mood_name = profile.get("active_mood", "adaptive")
-    mood_config = profile.get("moods", {}).get(active_mood_name, {})
-    
-    # Fallback if config is empty
-    if not mood_config:
-        mood_config = {
-            "background": { "algo": "adaptive_shadow", "mix_strength": 0.30, "target_L": 0.26 },
-            "text": { "algo": "harmonized", "drift": 0.10, "warmth_bias": True },
-            "hero": { "algo": "delta_e_loop", "target_delta": 45 }
-        }
-    
-    gen = MoodGenerator(anchor_hex, mood_config)
-    return gen.generate()
+    # --- Internal Math ---
+
+    def _circular_dist(self, a, b):
+        d = abs(a - b)
+        return min(d, 360 - d)
+
+    def _fit_template(self, hues: List[float], weights: List[float]) -> Tuple[HarmonicTemplate, float]:
+        """Finds the template and rotation that minimizes exclusion cost."""
+        best_t = self.templates[0]
+        best_rot = 0.0
+        min_cost = float('inf')
+        
+        hues = np.array(hues)
+        weights = np.array(weights)
+        
+        # Check every 5 degrees
+        for t in self.templates:
+            for rot in range(0, 360, 5):
+                cost = 0.0
+                for h, w in zip(hues, weights):
+                    # Distance to nearest sector
+                    dist_to_sector = 360.0
+                    for s in t.sectors:
+                        center = (rot + s.offset) % 360
+                        # Arc distance to center
+                        d_center = self._circular_dist(h, center)
+                        # Distance to edge (0 if inside)
+                        d_edge = max(0, d_center - (s.width / 2.0))
+                        dist_to_sector = min(dist_to_sector, d_edge)
+                    
+                    cost += dist_to_sector * w
+                
+                if cost < min_cost:
+                    min_cost = cost
+                    best_t = t
+                    best_rot = rot
+                    
+        return best_t, best_rot
+
+    def _derive_color_from_template(self, origin: Color, tmpl: HarmonicTemplate, rot: float, role: str) -> Color:
+        """
+        Derives a color that fits the template.
+        For Secondary: Picks a hue from a non-primary sector (if exists).
+        """
+        base = origin.convert("oklch")
+        
+        target_hue = base['h']
+        
+        if role == "secondary":
+            # Try to find a sector roughly 90-180 deg away if possible
+            # Or just the "next" sector in the list
+            if len(tmpl.sectors) > 1:
+                # Use the second sector's center
+                s = tmpl.sectors[1]
+                target_hue = (rot + s.offset) % 360
+            else:
+                # Monochromatic: shift slightly (analogous)
+                target_hue = (base['h'] + 30) % 360
+                
+        elif role == "tertiary":
+            if len(tmpl.sectors) > 2:
+                s = tmpl.sectors[2]
+                target_hue = (rot + s.offset) % 360
+            elif len(tmpl.sectors) == 2:
+                # Use the second sector again but shift or complement
+                target_hue = (rot + tmpl.sectors[1].offset + 180) % 360
+            else:
+                target_hue = (base['h'] - 30) % 360
+
+        # Return new color with same L/C as origin (will be solved later)
+        return Color("oklch", [base['l'], base['c'], target_hue])
+
+    def _harmonize_semantic(self, name: str, core_hue: float, tmpl: HarmonicTemplate, rot: float) -> Color:
+        """
+        Harmonizes a semantic color (e.g. Red) with the template.
+        If the core hue is inside the template, strictly use it.
+        If not, check if we can shift it slightly to fit.
+        If not, stick to core hue (Safety first!) but maybe desaturate.
+        """
+        # 1. Check if core_hue fits
+        fits = False
+        for s in tmpl.sectors:
+            center = (rot + s.offset) % 360
+            if self._circular_dist(core_hue, center) <= (s.width / 2.0):
+                fits = True
+                break
+        
+        final_hue = core_hue
+        if not fits:
+            # Try to shift towards nearest sector edge, but clamp to "Safe Zone"
+            # For simplicity in V1, we just stick to core hue to guarantee meaning.
+            # (Phase 3 simplified: "Hue Locking" strategy from research)
+            pass
+            
+        # Return generic semantic color (standard L/C)
+        # These L/C values are placeholders; Solver will fix them.
+        return Color("oklch", [0.65, 0.15, final_hue])

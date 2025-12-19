@@ -21,7 +21,7 @@ return {
     "{sem_blue}",      -- Blue
     "{syn_key}",       -- Magenta
     "{syn_str}",       -- Cyan
-    "{fg_dim}",        -- White
+    "{fg}",            -- White
   },
 
   brights = {

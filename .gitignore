@@ -21,3 +21,4 @@ result-*
 *.xml
 .zed/
 .zsh_history
+__pycache__/

@@ -39,5 +39,5 @@ in
   // FIX: Start CoreCtrl after polkit with delay
   spawn-at-startup "bash" "-c" "sleep 3 && ${pkgs.corectrl}/bin/corectrl & disown"
 
-  spawn-at-startup "bash" "-c" "deezer-enhanced --enable-features=UseOzonePlatform --ozone-platform=wayland > $HOME/.deezer-boot.log 2>&1 & sleep 4; vesktop &"
+  spawn-at-startup "bash" "-c" "deezer-enhanced --disable-gpu --enable-features=UseOzonePlatform --ozone-platform=wayland > $HOME/.deezer-boot.log 2>&1 & sleep 4; vesktop &"
 ''

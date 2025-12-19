@@ -15,11 +15,68 @@ import blake3
 
 # Add current directory to path if needed (though wrapper handles it)
 # Local imports
-from core.extraction import extract_anchor
-from core.generator import generate_palette
+from core.mood import MoodEngine, get_mood
+from core.extraction import PerceptualExtractor
+from core.generator import PaletteGenerator, PaletteConfig
 from core.renderer import render_template
-from core.icons import tint_icons
+# from core.icons import tint_icons # Disabled
 from coloraide import Color
+
+def map_colors(raw_colors):
+    """Map V2 scientific keys to V1 system keys w/ derivations."""
+    colors = {}
+    
+    # Core
+    colors['anchor'] = raw_colors.get('anchor', '#000000')
+    colors['bg'] = raw_colors.get('bg_base', '#000000')
+    colors['fg'] = raw_colors.get('fg_base', '#ffffff')
+    colors['ui_prim'] = raw_colors.get('primary', '#888888')
+    colors['ui_sec'] = raw_colors.get('secondary', '#666666')
+    
+    # Semantics
+    colors['sem_red'] = raw_colors.get('error', '#ff0000')
+    colors['sem_green'] = raw_colors.get('success', '#00ff00')
+    colors['sem_yellow'] = raw_colors.get('warning', '#ffff00')
+    colors['sem_blue'] = raw_colors.get('tertiary', '#0000ff') 
+    
+    # Derived Surfaces
+    try:
+        c_bg = Color(colors['bg'])
+        is_dark = c_bg.luminance() < 0.5
+        if is_dark:
+            colors['surface'] = c_bg.clone().set('oklch.l', lambda l: l + 0.05).to_string(hex=True)
+            colors['surfaceLighter'] = c_bg.clone().set('oklch.l', lambda l: l + 0.10).to_string(hex=True)
+            colors['surfaceDarker'] = c_bg.clone().set('oklch.l', lambda l: max(0, l - 0.02)).to_string(hex=True)
+        else:
+            colors['surface'] = c_bg.clone().set('oklch.l', lambda l: l - 0.05).to_string(hex=True)
+            colors['surfaceLighter'] = c_bg.clone().set('oklch.l', lambda l: l - 0.10).to_string(hex=True)
+            colors['surfaceDarker'] = c_bg.clone().set('oklch.l', lambda l: min(1, l + 0.02)).to_string(hex=True)
+    except: pass
+        
+    # Derived Text
+    try:
+        c_fg = Color(colors['fg'])
+        colors['fg_dim'] = c_fg.clone().set('alpha', 0.7).to_string(hex=True)
+        colors['fg_muted'] = c_fg.clone().set('alpha', 0.4).to_string(hex=True)
+    except: pass
+    
+    # Aliases
+    colors['syn_key'] = colors['ui_prim']
+    colors['syn_str'] = colors['sem_green']
+    colors['syn_fun'] = colors['sem_blue']
+    colors['syn_acc'] = colors['sem_red']
+    colors['text'] = colors['fg']
+    colors['textDim'] = colors['fg_dim']
+    colors['textMuted'] = colors['fg_muted']
+    
+    # Sanitize
+    for k, v in colors.items():
+        if isinstance(v, str) and (v.startswith("oklch") or v.startswith("rgb") or "(" in v):
+            try:
+                c = Color(v)
+                colors[k] = c.convert('srgb').to_string(hex=True)
+            except: pass
+    return colors
 
 # CONFIG
 XDG_CONFIG_HOME = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
@@ -59,47 +116,187 @@ def load_config():
         print(f"Error loading moods.json: {e}")
         return {"moods": {}, "active_mood": "adaptive"}
 
+def export_gowall_json(colors: dict, path: Path):
+    """Export palette to JSON format compatible with Gowall (-t)."""
+    # Documentation says: "colors": ["#hex", "#hex"...]
+    # It expects a list of hex strings, not a dict.
+    
+    # We'll gather all unique colors from our palette to form the target scheme.
+    # Order shouldn't matter for specific quantization, but standard ordering helps.
+    
+    # Priority colors first
+    color_list = [
+        colors.get("bg", "#000000"),
+        colors.get("fg", "#ffffff"),
+        colors.get("ui_prim", "#ff00ff"),
+        colors.get("ui_sec", "#00ffff"),
+        colors.get("sem_red", "#ff0000"),
+        colors.get("sem_green", "#00ff00"),
+        colors.get("sem_yellow", "#ffff00"),
+        colors.get("sem_blue", "#0000ff"),
+        colors.get("surface", "#111111"),
+        colors.get("surfaceLighter", "#222222"),
+        colors.get("surfaceDarker", "#000000"),
+        # Add ANSI semantic overrides if they differ?
+        # Actually, let's just make sure we capture the essence.
+        # Gowall likely clusters these.
+    ]
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_colors = []
+    for c in color_list:
+        if c not in seen:
+            unique_colors.append(c)
+            seen.add(c)
+
+    mapped = {
+        "name": "Generated",
+        "colors": unique_colors
+    }
+    
+    with open(path, 'w') as f:
+        json.dump(mapped, f, indent=2)
+
+def process_pipeline(img_path: Path, mood_name: str) -> dict:
+    """Run full color pipeline: Mood -> Extract -> Generate."""
+    try:
+        # 1. Mood
+        mood_cfg = get_mood(mood_name)
+        engine = MoodEngine(mood_cfg)
+        img_buffer = engine.process_image(str(img_path))
+        
+        # 2. Extract
+        extractor = PerceptualExtractor()
+        extracted_data = extractor.extract(img_buffer)
+        anchor = extracted_data['anchor']
+        
+        # 3. Generate
+        # 3. Generate
+        gen_config = PaletteConfig(mood=mood_name)
+        generator = PaletteGenerator(config=gen_config)
+        gen_result = generator.generate(anchor, extracted_data['palette'], extracted_data['weights'])
+        
+        # 4. Map to System Keys (V1 Schema)
+        # 4. Map to System Keys (V1 Schema)
+        colors = map_colors(gen_result['colors'])
+        
+        # Return Structured Object
+        
+        # Return Structured Object
+        return {
+            "colors": colors,
+            "active_mood": mood_name,
+            "harmonic_template": gen_result['template'],
+            "harmonic_rotation": gen_result['rotation']
+        }
+    except Exception as e:
+        print(f"Pipeline Error ({mood_name}): {e}")
+        return None
+
 def action_set(args):
     """Set theme from image."""
-    img_path = Path(args.image).resolve()
+    img_path = Path(args.image)
+    
+    # Path Resolution (Auto-check Wallpapers folder)
     if not img_path.exists():
-        print(f"Error: Image not found: {img_path}")
-        sys.exit(1)
+        wall_dir = Path.home() / "Pictures/Wallpapers"
+        candidate = wall_dir / img_path.name
+        if candidate.exists():
+            img_path = candidate
+        else:
+            print(f"Error: Image not found: {args.image} (checked {wall_dir})")
+            sys.exit(1)
+            
+    img_path = img_path.resolve()
 
     # 0. Load Config
     config_data = load_config()
     
-    # Override mood if specified
-    if args.mood:
-        if args.mood not in config_data.get("moods", {}):
-            print(f"Warning: Mood '{args.mood}' not found in config. Using default.")
+    palette = None
+    processed_wallpaper = None
+    
+    # Preset Logic
+    if hasattr(args, 'preset') and args.preset:
+        from core.presets import PRESETS
+        if args.preset in PRESETS:
+            print(f":: Applying Preset: {args.preset}")
+            palette = {
+                "colors": PRESETS[args.preset],
+                "active_mood": "preset",
+                "harmonic_template": "preset",
+                "harmonic_rotation": 0
+            }
+            
+            # Gowall Tinting for Presets
+            if hasattr(args, 'gowall') and args.gowall:
+                print(f":: Tinting with Gowall [{args.preset}]...")
+                try:
+                    theme_name = args.preset.replace('_', '-') 
+                    # Fix specific mappings for Gowall
+                    if theme_name == "catppuccin-mocha": theme_name = "catppuccin"
+                    dest = XDG_CACHE_HOME / "wal" / "processed_wallpaper.png"
+                    
+                    subprocess.run(["gowall", "convert", str(img_path), "--output", str(dest), "-t", theme_name], check=True, stdout=subprocess.DEVNULL)
+                    processed_wallpaper = dest
+                    print(f"   -> {dest}")
+                except Exception as e:
+                    print(f"   [!] Gowall failed: {e}")
         else:
-            config_data["active_mood"] = args.mood
+            print(f"Error: Preset '{args.preset}' not found. Available: {list(PRESETS.keys())}")
+            sys.exit(1)
+            
+    # Standard Pipeline (if not preset)
+    if not palette:
+        # Override mood if specified
+        if args.mood:
+            # V2: Check against python presets first, then config
+            from core.mood import MOOD_PRESETS
+            if args.mood not in MOOD_PRESETS and args.mood not in config_data.get("moods", {}):
+                print(f"Warning: Mood '{args.mood}' not found. Using default.")
+            else:
+                config_data["active_mood"] = args.mood
 
-    # Get Fallback Anchor from the active mood config
-    active_mood_name = config_data.get("active_mood", "adaptive")
-    mood_config = config_data.get("moods", {}).get(active_mood_name, {})
-    fallback_anchor = mood_config.get("fallback_anchor")
-
-    # ─── CACHE LOOKUP (Hot Path) ───────────────────────────────────────────
-    cached_palette = get_cached_palette(str(img_path), active_mood_name)
-    if cached_palette:
-        print(f":: Cache HIT for {img_path.name} [{active_mood_name}]")
-        palette = cached_palette
-    else:
-        # ─── COLD PATH: Extract + Generate ────────────────────────────────────
-        print(f":: Extracting Anchor from {img_path.name}...")
-        anchor = extract_anchor(str(img_path), fallback_hex=fallback_anchor)
-        print(f"   Anchor: {anchor}")
-
-        print(f":: Generating Palette ({active_mood_name})...")
-        palette = generate_palette(anchor, config_data)
+        # Get Fallback Anchor from the active mood config
+        active_mood_name = config_data.get("active_mood", "adaptive")
         
-        # Save to cache for next time
-        save_cached_palette(str(img_path), active_mood_name, palette)
+        # ─── CACHE LOOKUP (Hot Path) ───────────────────────────────────────────
+        cached_palette = get_cached_palette(str(img_path), active_mood_name)
+        if cached_palette:
+            print(f":: Cache HIT for {img_path.name} [{active_mood_name}]")
+            palette = cached_palette
+        else:
+            # ─── COLD PATH: Extract + Generate ────────────────────────────────────
+            print(f":: Processing Image {img_path.name} [Mood: {active_mood_name}]...")
+            t0 = time.time()
+            
+            palette = process_pipeline(img_path, active_mood_name)
+            if not palette:
+                print("Error: Pipeline failed.")
+                sys.exit(1)
+                
+            print(f"   Harmonic: {palette['harmonic_template']} ({palette['harmonic_rotation']}°) [{time.time()-t0:.3f}s]")
+            
+            # Save to cache for next time
+            save_cached_palette(str(img_path), active_mood_name, palette)
     
     # 2. Save Palette
     print(":: Saving State...")
+    
+    # Gowall Tinting for Dynamic Palette
+    if hasattr(args, 'gowall') and args.gowall and not processed_wallpaper:
+         print(":: Tinting with Gowall (Generated Palette)...")
+         try:
+             json_path = XDG_CACHE_HOME / "wal" / "gowall-palette.json"
+             export_gowall_json(palette['colors'], json_path)
+             
+             dest = XDG_CACHE_HOME / "wal" / "processed_wallpaper.png"
+             
+             subprocess.run(["gowall", "convert", str(img_path), "--output", str(dest), "-t", str(json_path)], check=True, stdout=subprocess.DEVNULL)
+             processed_wallpaper = dest
+             print(f"   -> {dest}")
+         except Exception as e:
+              print(f"   [!] Gowall failed: {e}")
     palette_json = json.dumps(palette, indent=2)
     atomic_write(PALETTE_FILE, palette_json)
     atomic_write(XDG_CONFIG_HOME / "astal" / "appearance.json", palette_json)
@@ -192,12 +389,16 @@ def action_set(args):
     
     # 6. Wallpaper
     print(":: Setting Wallpaper...")
+    
+    # Use processed (tinted) wallpaper if it exists, else original
+    target_wall = processed_wallpaper if processed_wallpaper else img_path
+    
     # Link wallpaper
     wall_link = XDG_CACHE_HOME / "current_wallpaper.jpg"
     try:
         if wall_link.is_symlink() or wall_link.exists():
             wall_link.unlink()
-        wall_link.symlink_to(img_path)
+        wall_link.symlink_to(target_wall)
     except: pass
     
     # SWWW
@@ -206,7 +407,7 @@ def action_set(args):
          time.sleep(0.5)
          
     subprocess.Popen([
-        "swww", "img", str(img_path),
+        "swww", "img", str(target_wall),
         "--transition-type", "grow",
         "--transition-pos", "0.5,0.5",
         "--transition-fps", "60",
@@ -337,25 +538,21 @@ def action_compare(args):
         print(f"Error: Image not found: {img_path}")
         sys.exit(1)
 
-    config_data = load_config()
-    moods = config_data.get("moods", {})
-    if not moods:
-        print("No moods defined in configuration.")
-        sys.exit(1)
-
-    print(f":: Extracting Anchor from {img_path.name}...")
-    anchor = extract_anchor(str(img_path))
+    from core.mood import MOOD_PRESETS
+    moods = list(MOOD_PRESETS.keys())
     
-    print(":: Generating Palettes for Comparison...")
+    print(f":: Comparing Moods for {img_path.name}...")
     
     results = {}
     for mood_name in moods:
-        # Create a temp config with this mood active
-        temp_config = config_data.copy()
-        temp_config["active_mood"] = mood_name
-        
-        pal = generate_palette(anchor, temp_config)
-        results[mood_name] = pal["colors"]
+        try:
+            # Run full V2 pipeline
+            res = process_pipeline(img_path, mood_name)
+            if res:
+                results[mood_name] = res["colors"]
+        except Exception as e:
+            print(f"Error processing {mood_name}: {e}")
+
 
     # Helper for Visuals
     def format_color_cell(hex_val, width=20):
@@ -371,7 +568,7 @@ def action_compare(args):
 
     # Print Table
     # Columns: Component | Mood 1 | Mood 2 | ...
-    mood_names = sorted(moods.keys())
+    mood_names = sorted(moods)
     col_width = 22
     header = f"{'COMPONENT':<15}" + "".join([f"{m:<{col_width}}" for m in mood_names])
     print("\n" + header)
@@ -469,13 +666,10 @@ def action_test(args):
     if args.anchor:
         ANCHORS = {"Custom": args.anchor}
     
-    config_data = load_config()
-    moods = config_data.get("moods", {})
+    from core.mood import MOOD_PRESETS
+    moods = list(MOOD_PRESETS.keys())
     
-    if not moods:
-        print("No moods defined in configuration.")
-        sys.exit(1)
-    
+    # Helper for Visuals
     def format_color_cell(hex_val, width=20):
         if not hex_val or not isinstance(hex_val, str) or not hex_val.startswith("#"):
             return f"{str(hex_val):<{width}}"
@@ -494,16 +688,22 @@ def action_test(args):
         
         results = {}
         for mood in moods:
-            temp_conf = config_data.copy()
-            temp_conf["active_mood"] = mood
             try:
-                res = generate_palette(anchor_hex, temp_conf)
-                results[mood] = res["colors"]
+                # Setup V2 Generator
+                p_conf = PaletteConfig(mood=mood)
+                gen = PaletteGenerator(p_conf)
+                # Mock extraction (just duplicates of anchor)
+                mock_swatch = [anchor_hex] * 8
+                mock_weights = [1.0] * 8
+                
+                res = gen.generate(anchor_hex, mock_swatch, mock_weights)
+                results[mood] = map_colors(res["colors"])
+                
             except Exception as e:
                 results[mood] = {"error": str(e)}
         
         # Columns
-        mood_names = sorted(moods.keys())
+        mood_names = sorted(moods)
         col_width = 22
         header = f"{'COMPONENT':<15}" + "".join([f"{m:<{col_width}}" for m in mood_names])
         print(header)
@@ -592,24 +792,19 @@ def action_precache(args):
         """Process one image for all moods."""
         results = []
         try:
-            # Extract anchor once per image
-            fallback = config_data.get("moods", {}).get("adaptive", {}).get("fallback_anchor")
-            anchor = extract_anchor(str(img_path), fallback_hex=fallback)
-            
             for mood in moods:
                 cached = get_cached_palette(str(img_path), mood)
                 if cached:
                     results.append((mood, "cached"))
                     continue
                 
-                # Generate palette for this mood
-                temp_config = config_data.copy()
-                temp_config["active_mood"] = mood
-                palette = generate_palette(anchor, temp_config)
-                
-                # Save to cache
-                save_cached_palette(str(img_path), mood, palette)
-                results.append((mood, "generated"))
+                # Full pipeline per mood
+                palette = process_pipeline(img_path, mood)
+                if palette:
+                    save_cached_palette(str(img_path), mood, palette)
+                    results.append((mood, "generated"))
+                else:
+                    results.append((mood, "failed"))
                 
         except Exception as e:
             results.append(("error", str(e)))
@@ -629,7 +824,22 @@ def action_precache(args):
 
 
 def main():
+    # Auto-launch TUI if no arguments provided
+    if len(sys.argv) == 1:
+        try:
+            from core.tui import MagicianApp
+            app = MagicianApp()
+            app.run()
+            sys.exit(0)
+        except ImportError as e:
+            print(f"TUI Error: {e}")
+            print("Please ensure 'textual' is installed and PYTHONPATH is correct.")
+            sys.exit(1)
+        except Exception as e:
+            print(f"Failed to launch TUI: {e}")
+            sys.exit(1)
 
+    # Set up argument parser
     parser = argparse.ArgumentParser(description="Lis-OS Theme Engine")
     subparsers = parser.add_subparsers(dest="command", required=True)
     
@@ -637,6 +847,8 @@ def main():
     set_parser = subparsers.add_parser("set", help="Set theme from image")
     set_parser.add_argument("image", help="Path to image")
     set_parser.add_argument("--mood", help="Override active mood", default=None)
+    set_parser.add_argument("--preset", help="Override with static preset", default=None)
+    set_parser.add_argument("--gowall", action="store_true", help="Tint wallpaper with Gowall")
     set_parser.set_defaults(func=action_set)
     
     # COMPARE

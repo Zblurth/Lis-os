@@ -26,6 +26,7 @@ let
   runtimeDeps = [
     pkgs.coreutils
     pkgs.jq
+    pkgs.gowall
     # pkgs.pastel  # REMOVED: Now using native coloraide
     # pkgs.imagemagick  # DISABLED: Only needed for icon tinting (see icons.py)
     pkgs.swww
@@ -36,6 +37,7 @@ let
     pkgs.gnugrep
     pkgs.gawk
     pkgs.bc
+    pkgs.chafa
     resolveIconsScript
     magicianScript
   ];
@@ -43,7 +45,11 @@ let
   # 4. CLI Wrappers
   engineScript = pkgs.writeShellScriptBin "theme-engine" ''
     export PATH=${pkgs.lib.makeBinPath runtimeDeps}:$PATH
-    exec magician set "$@"
+    if [ $# -eq 0 ]; then
+      exec magician
+    else
+      exec magician set "$@"
+    fi
   '';
 
   daemonScript = pkgs.writeShellScriptBin "lis-daemon" ''
@@ -75,6 +81,12 @@ let
     ps.pydantic
     ps.coloraide
     ps.blake3 # For wallpaper hash caching
+    # Color Science v2 dependencies
+    ps.numpy # Array math
+    ps.opencv4 # Saliency detection, FFT
+    ps.scikit-learn # K-Means clustering
+    ps.scipy # Optimization (optional)
+    ps.textual # TUI Framework
   ]);
 
   magicianScript = pkgs.writeShellScriptBin "magician" ''

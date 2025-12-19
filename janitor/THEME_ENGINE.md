@@ -1,98 +1,64 @@
-# Lis-OS Theme Engine
+# Lis-OS Theme Engine V2
 
-**Architecture:** Python + Oklab Color Science  
-**Dependencies:** Pillow, coloraide, SWWW, blake3
+**Architecture:** Perceptual Color Pipeline (Oklch + Computer Vision)
+**Dependencies:** Pillow, numpy, opencv, scikit-learn, coloraide, blake3
 
 ## Overview
 
-The Theme Engine extracts the perceptual "soul" of a wallpaper and generates harmonious UI palettes using **Oklab** color space. It supports multiple design philosophies called **Moods**.
+The V2 Theme Engine replaces heuristics with sophisticated color science. It uses a **Perceptual Color Pipeline** to extract the "soul" of a wallpaper and generate mathematically harmonious, accessible themes.
 
-**Performance:** ~0.7s cold path, instant hot path (cached).
+**Performance:** ~0.25s cold path (Intel i7), instant hot path.
+
+## Architecture
+
+The pipeline consists of 4 distinct stages:
+
+### 1. Mood Grading (`mood.py`)
+Pre-processes the wallpaper using **3D LUTs** and **Split-Toning** to shift the aesthetic *before* analysis. This allows a single wallpaper to yield multiple distinct theme variations (e.g., "Deep" forces dark shadows/cool tints, "Pastel" lifts shadows/desaturates).
+
+### 2. Perceptual Extraction (`extraction.py`)
+Instead of simple histograms, V2 uses **Spectral Residual Saliency** (a computer vision technique) to identify visual regions of interest. It then uses **Weighted K-Means** clustering on the saliency-masked pixels to finding the true dominant subject color (Anchor), ignoring large background areas if they are not visually important.
+
+### 3. Harmonic Generation (`generator.py`)
+Fits the extracted palette to **Matsuda's Harmonic Templates** (i, I, L, T, V, X, Y) to discover the image's inherent harmonic key. It then generates a full hue-harmonized palette by deriving colors from the template's geometric sectors.
+
+### 4. WCAG Constraint Solver (`solver.py`)
+Uses a binary search solver to calculate the precise Lightness (L) required to meet strict contrast ratios against the background, while preserving Hue and Chroma as much as possible.
+- **Text:** 7:1 (Preferred) or 4.5:1 (Minimum)
+- **UI Components:** 3:1 (Minimum)
+- Includes **Gamut Mapping** (Oklch Chroma reduction) to ensure valid sRGB output.
 
 ## File Structure
 
 ```
-modules/home/theme/
-├── config/
-│   └── moods.json          # Mood presets (THE TRUTH)
-├── core/                   # Python engine
-│   ├── magician.py         # CLI entry (set|compare|test|daemon|precache)
-│   ├── generator.py        # MoodGenerator (The Brain)
-│   ├── extraction.py       # Pillow histogram + saliency
-│   ├── renderer.py         # Template substitution
-│   ├── icons.py            # Icon tinting (DISABLED)
-│   ├── color.py            # Native coloraide wrappers
-│   └── resolve_icons.py    # GTK icon resolution
-├── templates/              # App config templates
-├── stylix/                 # Stylix integration
-├── default.nix             # Home Manager entry
-└── packages.nix            # Nix wrappers + Python env
+modules/home/theme/core/
+├── magician.py         # Orchestra (CLI) - Maps outputs to Legacy Schema
+├── mood.py             # Grading Engine (Vectorized Numpy)
+├── extraction.py       # Saliency + K-Means
+├── generator.py        # Matsuda Templates
+├── solver.py           # WCAG Binary Search
+└── renderer.py         # Template Engine (Jinja2)
 ```
 
 ## CLI Commands
 
+The entry point is `theme-engine` (wrapper for `magician.py`).
+
 | Command | Description |
 |---------|-------------|
-| `theme-engine <image> [--mood NAME]` | Apply wallpaper and generate theme |
-| `theme-precache <folder> [--jobs N]` | Pre-generate palettes for all images |
-| `theme-compare <image>` | Compare all moods side-by-side |
-| `theme-test [--anchor HEX]` | Run stress test (10 anchors × moods) |
-| `lis-daemon` | Background watcher (systemd service) |
+| `theme-engine set <image> [--mood NAME]` | Generate and apply theme. |
+| `theme-engine precache <folder> [--jobs N]` | Pre-generate all moods for all images (Parallel). |
 
-## Caching
+**Moods:** `adaptive` (default), `deep`, `pastel`, `vibrant`, `bw`.
 
-Palettes are cached by Blake3 hash at `~/.cache/theme-engine/palettes/{hash}/{mood}.json`.
+## Caching & Outputs
 
-- **Cold path:** Extract → Generate → Cache → Apply (~0.7s)
-- **Hot path:** Load cached palette → Apply (~0.7s)
+Palettes are cached by **Image Hash + Mood**.
+*   **Cache:** `~/.cache/theme-engine/palettes/{hash}/{mood}.json`
+*   **Active State:** `~/.cache/theme-engine/palette.json`
+*   **Template Outputs:** `~/.cache/wal/*.conf`, `~/.config/noctalia/colors.json`, etc.
 
-Use `theme-precache ~/Pictures/Wallpapers --jobs 4` to pre-warm the cache.
+## Developer Notes
 
-## Moods (`config/moods.json`)
-
-| Mood | Fallback | Description |
-|------|----------|-------------|
-| `adaptive` | `#7E9CD8` | Context-aware warmth, faithful hue |
-| `atmospheric` | `#BD93F9` | High contrast, hue rotation, temp inversion |
-| `pastel` | `#FFB8C6` | High lightness, soft colors |
-
-### Mood Config Structure
-
-```json
-{
-  "description": "...",
-  "fallback_anchor": "#HEX",
-  "background": { "algo": "adaptive_shadow", "shadow_root": "#HEX", "mix_strength": 0.30, "target_L": 0.26 },
-  "text": { "algo": "harmonized", "drift": 0.10, "warmth_bias": true },
-  "hero": { "algo": "delta_e_loop", "target_delta": 45, "hue_fence": 25 }
-}
-```
-
-## Anchor Extraction (Saliency Algorithm)
-
-```
-Score = Chroma × log(Frequency)
-```
-
-1. Resize image to 100×100 (Pillow)
-2. Boost saturation 1.5× (ImageEnhance)
-3. Generate histogram, take top 30 by frequency
-4. For each color: Score = Chroma × log(Count)
-5. Filter out black (L<1) and white (L>98)
-6. If monochrome (Chroma < 5): Use `fallback_anchor` from mood
-
-## Color Theory
-
-- **Adaptive Shadow:** Mix with atmospheric roots, never pure gray
-- **Temperature Inversion:** Cool BG → warm text, vice versa
-- **Delta-E Loop:** Boost chroma until contrast target met
-- **Harmonic Poles:** Drift toward Yellow (90°) or Blue (270°) axis
-
-## Outputs
-
-| Path | Content |
-|------|---------|
-| `~/.cache/theme-engine/palette.json` | Full palette JSON |
-| `~/.cache/theme-engine/palettes/` | Pre-cached palettes |
-| `~/.cache/wal/ags-colors.css` | GTK CSS variables |
-| `~/.config/noctalia/colors.json` | Noctalia shell colors |
+*   **Sanitization:** The raw engine works in Oklch space, but `magician.py` enforces a sanitization layer to convert all outputs to standard **Hex** strings for compatibility with GTK/CSS/Legacy templates.
+*   **Testing:** Use `test_mood.py`, `test_extraction.py`, and `test_generator.py` to verify individual components.
