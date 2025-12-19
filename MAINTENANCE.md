@@ -13,5 +13,3 @@ nix-store --query --referrers /nix/store/*-nameofthething-*
 
 # Debug Deezer (Check for white screen errors)
 cat ~/.deezer-boot.log
-
-theme-precache ~/Pictures/Wallpapers --jobs 4

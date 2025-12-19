@@ -100,7 +100,8 @@ class WallpaperList(ScrollableContainer):
     def compose(self) -> ComposeResult:
         for i, wp in enumerate(self.wallpapers):
             item = WallpaperItem(wp)
-            item.add_class("cursor" if i == 0 else "")
+            if i == 0:
+                item.add_class("cursor")
             yield item
     
     def on_mount(self):
