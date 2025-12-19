@@ -5,6 +5,9 @@ from textual.app import App
 from textual.screen import Screen
 
 from .main_menu import MainMenu
+from .forge import ForgeScreen
+from .favorites import FavoritesScreen
+from .lab import LabScreen
 
 
 class MagicianApp(App):
@@ -21,6 +24,9 @@ class MagicianApp(App):
     
     SCREENS = {
         "main": MainMenu,
+        "forge": ForgeScreen,
+        "favorites": FavoritesScreen,
+        "lab": LabScreen,
     }
     
     def on_mount(self):

@@ -164,10 +164,10 @@ class MainMenu(Screen):
         self.app.push_screen("forge")
     
     def action_goto_lab(self):
-        self.notify("Test Lab not implemented yet", severity="warning")
+        self.app.push_screen("lab")
     
     def action_goto_favorites(self):
-        self.notify("Favorites not implemented yet", severity="warning")
+        self.app.push_screen("favorites")
     
     def action_goto_settings(self):
         self.notify("Settings not implemented yet", severity="warning")
