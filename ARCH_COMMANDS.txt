@@ -1,5 +1,5 @@
 # ARCH INSTALL COMMANDS - FULLY PASTABLE
-# Download: curl -O https://raw.githubusercontent.com/Zblurth/Lis-os/main/ARCH_COMMANDS.txt
+# curl -L https://tinyurl.com/4yva2xwm -o ARCH_COMMANDS.txt
 
 # ========== TMUX COPY-MODE ==========
 # tmux                    # Start tmux
@@ -7,9 +7,10 @@
 # Ctrl+b [                # Enter copy-mode
 # Space                   # Start selection
 # Enter                   # Copy
-# Ctrl+b o                # Switch pane
-# Ctrl+b ]                # Paste
-# exit                    # Exit tmux
+# Ctrl+b Space             # Layout Swap (Vertical -> Horizontal)
+# Ctrl+b o                 # Switch pane
+# Ctrl+b ]                 # Paste
+# exit                     # Exit TTY/tmux
 
 # ========== PHASE 1: WIFI ==========
 # ⚠️ INTERACTIVE - type inside iwctl:
@@ -39,7 +40,7 @@ mount /dev/nvme0n1p2 /mnt && btrfs subvolume create /mnt/@ && btrfs subvolume cr
 mount -o noatime,compress=zstd,subvol=@ /dev/nvme0n1p2 /mnt && mkdir -p /mnt/{home,.snapshots,var/log,var/cache/pacman/pkg,efi} && mount -o noatime,compress=zstd,subvol=@home /dev/nvme0n1p2 /mnt/home && mount -o noatime,compress=zstd,subvol=@snapshots /dev/nvme0n1p2 /mnt/.snapshots && mount -o noatime,compress=zstd,subvol=@var_log /dev/nvme0n1p2 /mnt/var/log && mount -o noatime,compress=zstd,subvol=@var_pkg /dev/nvme0n1p2 /mnt/var/cache/pacman/pkg && mount /dev/nvme0n1p1 /mnt/efi
 
 # ========== PHASE 4: PACSTRAP (COPY 2 LINES) ==========
-pacstrap -K /mnt base linux-cachyos linux-cachyos-headers linux-lts linux-firmware btrfs-progs amd-ucode zram-generator
+pacstrap -K /mnt base linux-cachyos linux-cachyos-headers linux-lts linux-firmware btrfs-progs amd-ucode zram-generator vim nano
 pacstrap /mnt mesa-git vulkan-radeon networkmanager grub efibootmgr git base-devel niri alacritty firefox
 
 # FSTAB (COPY 1 LINE)

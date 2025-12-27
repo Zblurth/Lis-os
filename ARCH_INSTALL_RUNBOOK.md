@@ -74,7 +74,7 @@ Ctrl+b then %     # Split vertical
 | `Ctrl+b` then `o` | Switch to other pane |
 | `Ctrl+b` then `]` | Paste |
 
-**Other tmux shortcuts:**
+- `Ctrl+b Space` = layout swap (Vertical <-> Horizontal)
 - `Ctrl+b arrow` = switch pane
 - `Ctrl+b z` = zoom pane
 - `Ctrl+b x` = close pane
@@ -170,7 +170,7 @@ mount /dev/nvme0n1p1 /mnt/efi
 ## Phase 4: Base Install
 
 ```bash
-pacstrap -K /mnt base linux-cachyos linux-cachyos-headers linux-lts linux-firmware btrfs-progs amd-ucode zram-generator
+pacstrap -K /mnt base linux-cachyos linux-cachyos-headers linux-lts linux-firmware btrfs-progs amd-ucode zram-generator vim nano
 pacstrap /mnt mesa-git vulkan-radeon networkmanager grub efibootmgr git base-devel niri alacritty firefox
 genfstab -U /mnt >> /mnt/etc/fstab
 ```
