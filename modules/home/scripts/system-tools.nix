@@ -39,6 +39,12 @@ in
         echo -e "${blue}🔍 Validating Niri...${reset}"
         niri validate || echo -e "${red}⚠️ Niri config issues detected${reset}"
       fi
+
+      if pgrep -x quickshell &> /dev/null; then
+        echo -e "${blue}🔄 Refreshing Noctalia Shell...${reset}"
+        pkill -x quickshell || true
+        (noctalia-shell & disown) &> /dev/null
+      fi
     '')
 
     # --- Update OS (up-os) ---
@@ -56,6 +62,12 @@ in
       NIX_CONFIG="warn-dirty = false" nh os switch .
 
       echo -e "${green}🎉 System updated successfully!${reset}"
+
+      if pgrep -x quickshell &> /dev/null; then
+        echo -e "${blue}🔄 Refreshing Noctalia Shell...${reset}"
+        pkill -x quickshell || true
+        (noctalia-shell & disown) &> /dev/null
+      fi
     '')
 
     # --- Test OS (test-os) ---

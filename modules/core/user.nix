@@ -17,7 +17,7 @@ in
 
   programs.fish.enable = true;
   programs.zsh.enable = true;
-  users.groups.i2c = {};
+  users.groups.i2c = { };
 
   home-manager = {
     useUserPackages = true;
@@ -54,6 +54,7 @@ in
       "wheel" # sudo access
       "vboxusers" # For VirtualBox
       "i2c"
+      "rfkill"
     ];
     # Use configured shell based on defaultShell variable
     shell = shellPackage;

@@ -4,11 +4,14 @@
   // This allows open-on-workspace rules to work reliably
 
   workspace "1" {
-      // You can pin this to a monitor if you have multiple
-      // open-on-output "DP-1"
+      // Browser
   }
 
   workspace "2" {
-      // open-on-output "DP-1"
+      // Development
+  }
+
+  workspace "3" {
+      // Music & Chat
   }
 ''

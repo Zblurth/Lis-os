@@ -13,3 +13,5 @@ nix-store --query --referrers /nix/store/*-nameofthething-*
 
 # Debug Deezer (Check for white screen errors)
 cat ~/.deezer-boot.log
+
+sudo rfkill unblock bluetooth && bluetoothctl power on 

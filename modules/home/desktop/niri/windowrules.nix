@@ -7,9 +7,7 @@
       draw-border-with-background false
   }
 
-
-
-  // --- ERRANDS (Floating & Centered) ---
+  // --- Floating Tools (ERRANDS / Thunar) ---
   window-rule {
       match app-id="io.github.mrvladus.List"
       open-floating true
@@ -17,7 +15,6 @@
       default-window-height { proportion 0.6; }
   }
 
-  // --- Floating Thunar ---
   window-rule {
       match app-id="thunar" title="thunar-float"
       open-floating true
@@ -25,38 +22,38 @@
       default-window-height { proportion 0.6; }
   }
 
-  // --- Workspace 1 Rules (Browser) ---
+  // --- Workspace 2: Web & General ---
   window-rule {
-      match at-startup=true app-id=r#"^vivaldi.*$"#
+      match app-id=r#"^vivaldi.*$"#
       open-on-workspace "2"
-      default-column-width { proportion 0.66667; }
+      default-column-width { proportion 0.66; }
   }
 
-  // --- ZED EDITOR ---
-  window-rule {
-      match app-id=r#"^dev\.zed\.Zed$"#
-      default-column-width { proportion 0.33333; }
-  }
-
-  // --- Workspace 2 Rules (Music/Chat) ---
+  // --- Workspace 3: Music & Chat ---
   window-rule {
       match app-id="deezer-enhanced"
       open-on-workspace "3"
-      default-column-width { proportion 0.33333; }
+      default-column-width { proportion 0.33; }
   }
 
   window-rule {
       match app-id="vesktop"
       open-on-workspace "3"
-      default-column-width { proportion 0.66667; }
+      default-column-width { proportion 0.66; }
   }
 
-  // --- Terminal Rules ---
+  // --- App Defaults ---
+  window-rule {
+      match app-id=r#"^dev\.zed\.Zed$"#
+      default-column-width { proportion 0.66; }
+  }
+
   window-rule {
       match app-id="org.wezfurlong.wezterm"
-      default-column-width { proportion 0.33333; }
+      default-column-width { proportion 0.33; }
   }
 
+  // --- Floating Terminal ---
   window-rule {
       match app-id="wezterm-float"
       open-floating true
@@ -65,12 +62,12 @@
       default-window-height { proportion 0.5; }
   }
 
-  // --- Notifications (Steam/Vivaldi) ---
+  // --- Notifications (Steam uses custom windows, not XDG notifications) ---
   window-rule {
-      match app-id="^steam$" title="^Notification.*$"
+      match app-id="^steam$" title=r#"^notificationtoasts.*$"#
       open-floating true
-      default-floating-position x=1.0 y=0.0 
-      // relative-to="monitor-work-area" // Removed to be safe, defaults should be fine or check docs for "top-right"
+      open-focused false
+      default-floating-position x=16 y=16 relative-to="top-right"
   }
 
   window-rule {

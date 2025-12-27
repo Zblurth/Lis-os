@@ -32,6 +32,7 @@
           ];
       };
     };
+    gamescope.enable = true;
   };
 
   # System-level packages

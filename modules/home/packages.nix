@@ -37,7 +37,8 @@
     hyfetch # Gay flex
     jq # JSON processor
     nvd # Nix diffs
-
+    pavucontrol # Audio control
+    corectrl # Overclocking Utility
     starship # Custom prompt shell
     libnotify # For notify-send
 
