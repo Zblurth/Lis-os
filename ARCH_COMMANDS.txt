@@ -1,20 +1,25 @@
 # ARCH INSTALL COMMANDS
-# Copy-paste ready - just replace YOUR_SSID and YOUR_PASSWORD
 # Download: curl -O https://raw.githubusercontent.com/Zblurth/Lis-os/main/ARCH_COMMANDS.txt
 
-# ========== PHASE 1: LIVE USB ==========
+# ========== HOW TO USE THIS FILE ==========
+# 1. tmux                           # Start tmux
+# 2. Ctrl+b then %                  # Split vertical
+# 3. Left pane: less ARCH_COMMANDS.txt
+# 4. Ctrl+b then [                  # Enter copy-mode
+# 5. Arrow keys to navigate
+# 6. Space to start selection
+# 7. Select lines, then Enter to copy
+# 8. Ctrl+b then o                  # Switch to other pane
+# 9. Ctrl+b then ]                  # Paste
+
+# ========== PHASE 1: WIFI ==========
 iwctl
-# Inside iwctl:
-# device list
-# station wlan0 scan
-# station wlan0 get-networks
-# station wlan0 connect "YOUR_SSID"
-# exit
+# Inside iwctl: device list → station wlan0 scan → station wlan0 connect "SSID" → exit
 
 ping -c3 archlinux.org
 timedatectl set-ntp true
 
-# ========== PHASE 2: CACHYOS REPOS ==========
+# ========== PHASE 2: CACHYOS (COPY 6 LINES) ==========
 pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com
 pacman-key --lsign-key F3B607488DB35A47
 pacman -Sy
@@ -23,22 +28,14 @@ tar xvf cachyos-repo.tar.xz && cd cachyos-repo
 ./cachyos-repo.sh
 cd ..
 
-# ========== PHASE 3: PARTITIONING (FLAT LAYOUT) ==========
-# Replace nvme0n1 with your disk (vda for VM)
+# ========== PHASE 3: PARTITIONING ==========
+# fdisk /dev/nvme0n1 → g → n,1,default,+1G → t,1 → n,2,default,default → w
 
-# Create partitions
-fdisk /dev/nvme0n1
-# g (GPT)
-# n, 1, default, +1G (EFI)
-# t, 1 (EFI System)
-# n, 2, default, default (Root)
-# w
-
-# Format
+# FORMAT (COPY 2 LINES)
 mkfs.fat -F32 /dev/nvme0n1p1
 mkfs.btrfs /dev/nvme0n1p2
 
-# Create FLAT subvolumes
+# SUBVOLUMES (COPY 7 LINES)
 mount /dev/nvme0n1p2 /mnt
 btrfs subvolume create /mnt/@
 btrfs subvolume create /mnt/@home
@@ -47,7 +44,7 @@ btrfs subvolume create /mnt/@var_log
 btrfs subvolume create /mnt/@var_pkg
 umount /mnt
 
-# Mount everything
+# MOUNT ALL (COPY 7 LINES)
 mount -o noatime,compress=zstd,subvol=@ /dev/nvme0n1p2 /mnt
 mkdir -p /mnt/{home,.snapshots,var/log,var/cache/pacman/pkg,efi}
 mount -o noatime,compress=zstd,subvol=@home /dev/nvme0n1p2 /mnt/home
@@ -56,74 +53,59 @@ mount -o noatime,compress=zstd,subvol=@var_log /dev/nvme0n1p2 /mnt/var/log
 mount -o noatime,compress=zstd,subvol=@var_pkg /dev/nvme0n1p2 /mnt/var/cache/pacman/pkg
 mount /dev/nvme0n1p1 /mnt/efi
 
-# ========== PHASE 4: BASE INSTALL ==========
+# ========== PHASE 4: PACSTRAP (COPY 3 LINES) ==========
 pacstrap -K /mnt base linux-cachyos linux-cachyos-headers linux-lts linux-firmware btrfs-progs amd-ucode zram-generator
 pacstrap /mnt mesa-git vulkan-radeon networkmanager grub efibootmgr git base-devel niri alacritty firefox
-
-# Generate fstab
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # ========== PHASE 5: CHROOT ==========
 arch-chroot /mnt
 
-# Timezone
+# LOCALE (COPY 7 LINES)
 ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 hwclock --systohc
-
-# Locale
 echo "en_GB.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
 echo "LANG=en_GB.UTF-8" > /etc/locale.conf
 echo "KEYMAP=us" > /etc/vconsole.conf
-
-# Hostname
 echo "archbox" > /etc/hostname
 
-# Root password
+# USER SETUP (one at a time - needs password input)
 passwd
-
-# User
 useradd -m -G wheel -s /bin/bash lune
 passwd lune
 EDITOR=vim visudo
 # Uncomment: %wheel ALL=(ALL:ALL) ALL
 
-# GRUB
+# BOOTLOADER (COPY 3 LINES)
 grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
-
-# Enable services
 systemctl enable NetworkManager
 
-# zram config (modern swap)
+# ZRAM (COPY 5 LINES)
 cat > /etc/systemd/zram-generator.conf << 'EOF'
 [zram0]
 zram-size = ram / 2
 compression-algorithm = zstd
 EOF
 
-# Exit and reboot
+# EXIT (COPY 3 LINES)
 exit
 umount -R /mnt
 reboot
 
-# ========== PHASE 6: FIRST BOOT ==========
+# ========== PHASE 6: AFTER REBOOT ==========
 nmtui
-# Connect to WiFi
 
-# Install paru
+# PARU (COPY 3 LINES)
 git clone https://aur.archlinux.org/paru.git
 cd paru && makepkg -si
 cd .. && rm -rf paru
 
-# Install Niri
-paru -S niri
-sudo pacman -S alacritty firefox
-
-# Start GUI
+# START GUI
 niri
 
-# ========== PHASE 7: SNAPPER ==========
+# ========== PHASE 7: SNAPPER (COPY 8 LINES) ==========
 sudo pacman -S snapper snap-pac grub-btrfs
 sudo snapper -c root create-config /
 sudo sed -i 's/TIMELINE_LIMIT_HOURLY=.*/TIMELINE_LIMIT_HOURLY="5"/' /etc/snapper/configs/root
@@ -131,20 +113,17 @@ sudo sed -i 's/TIMELINE_LIMIT_DAILY=.*/TIMELINE_LIMIT_DAILY="7"/' /etc/snapper/c
 sudo sed -i 's/TIMELINE_LIMIT_WEEKLY=.*/TIMELINE_LIMIT_WEEKLY="2"/' /etc/snapper/configs/root
 sudo sed -i 's/TIMELINE_LIMIT_MONTHLY=.*/TIMELINE_LIMIT_MONTHLY="1"/' /etc/snapper/configs/root
 sudo sed -i 's/TIMELINE_LIMIT_YEARLY=.*/TIMELINE_LIMIT_YEARLY="0"/' /etc/snapper/configs/root
-sudo systemctl enable --now snapper-timeline.timer
-sudo systemctl enable --now snapper-cleanup.timer
-sudo systemctl enable --now grub-btrfsd
+sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer grub-btrfsd
+
+# UPDATE GRUB
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 
-# ========== PHASE 8: DCLI ==========
+# ========== PHASE 8: DCLI (COPY 2 LINES) ==========
 paru -S dcli
 dcli init
-# Edit ~/.config/arch-config/hosts/archbox.yaml
-# Edit ~/.config/arch-config/modules/*.yaml
-dcli sync
 
 # ========== VERIFY ==========
 uname -r
-# Should show: 6.x.x-cachyos
 pacman -Q mesa-git
 sudo snapper list
+zramctl

@@ -48,6 +48,40 @@ When helping, consider: Is this a config issue? A package conflict? A Btrfs subv
 
 ---
 
+## Using This Runbook in a VM
+
+**Download command file:**
+```bash
+curl -O https://raw.githubusercontent.com/Zblurth/Lis-os/main/ARCH_COMMANDS.txt
+less ARCH_COMMANDS.txt
+```
+
+**tmux split view:**
+```bash
+tmux              # Start
+Ctrl+b then %     # Split vertical
+```
+
+**tmux copy-mode (to copy commands):**
+
+| Step | Action |
+|:---|:---|
+| `Ctrl+b` then `[` | Enter copy-mode |
+| Arrow keys | Navigate to start of text |
+| `Space` | Start selection |
+| Arrow keys | Select lines |
+| `Enter` | Copy to buffer |
+| `Ctrl+b` then `o` | Switch to other pane |
+| `Ctrl+b` then `]` | Paste |
+
+**Other tmux shortcuts:**
+- `Ctrl+b arrow` = switch pane
+- `Ctrl+b z` = zoom pane
+- `Ctrl+b x` = close pane
+- `Ctrl+d` = exit tmux
+
+---
+
 ## Phase 1: Live USB
 
 Boot from Ventoy or USB with Arch ISO.
