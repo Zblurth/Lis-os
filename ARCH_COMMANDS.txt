@@ -45,22 +45,20 @@ btrfs subvolume create /mnt/@home
 btrfs subvolume create /mnt/@snapshots
 btrfs subvolume create /mnt/@var_log
 btrfs subvolume create /mnt/@var_pkg
-btrfs subvolume create /mnt/@swap
 umount /mnt
 
 # Mount everything
 mount -o noatime,compress=zstd,subvol=@ /dev/nvme0n1p2 /mnt
-mkdir -p /mnt/{home,.snapshots,var/log,var/cache/pacman/pkg,swap,efi}
+mkdir -p /mnt/{home,.snapshots,var/log,var/cache/pacman/pkg,efi}
 mount -o noatime,compress=zstd,subvol=@home /dev/nvme0n1p2 /mnt/home
 mount -o noatime,compress=zstd,subvol=@snapshots /dev/nvme0n1p2 /mnt/.snapshots
 mount -o noatime,compress=zstd,subvol=@var_log /dev/nvme0n1p2 /mnt/var/log
 mount -o noatime,compress=zstd,subvol=@var_pkg /dev/nvme0n1p2 /mnt/var/cache/pacman/pkg
-mount -o noatime,nodatacow,subvol=@swap /dev/nvme0n1p2 /mnt/swap
 mount /dev/nvme0n1p1 /mnt/efi
 
 # ========== PHASE 4: BASE INSTALL ==========
-pacstrap -K /mnt base linux-cachyos linux-cachyos-headers linux-firmware btrfs-progs amd-ucode
-pacstrap /mnt mesa-git vulkan-radeon networkmanager grub efibootmgr git base-devel
+pacstrap -K /mnt base linux-cachyos linux-cachyos-headers linux-lts linux-firmware btrfs-progs amd-ucode zram-generator
+pacstrap /mnt mesa-git vulkan-radeon networkmanager grub efibootmgr git base-devel niri alacritty firefox
 
 # Generate fstab
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -96,6 +94,13 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 # Enable services
 systemctl enable NetworkManager
+
+# zram config (modern swap)
+cat > /etc/systemd/zram-generator.conf << 'EOF'
+[zram0]
+zram-size = ram / 2
+compression-algorithm = zstd
+EOF
 
 # Exit and reboot
 exit
